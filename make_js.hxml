@@ -1,0 +1,5 @@
+-D PLUSTD_TARGET=js.canvas
+-cp /DevProjects/Fonts
+-lib plustd
+-main Main
+-js game.js
