@@ -18,16 +18,16 @@ You take control of an AI which oversees the operation of a city via console. Yo
 ## TODO ##
 
  - polish
-   - CRT effect
+   - *CRT effect*
    - tape effect
  - story
-   - timeline
+   - *timeline*
    - people bios
    - dialogue lines
-   - buildings
-   - crucial events
+   - *buildings*
+   - *crucial events*
  - UI
-   - city navigation
+   - *city navigation*
    - dialogues
    - tape recordings / transcript
  - ...

@@ -8,14 +8,17 @@
 | INF tip | (pre) | (call from RB) | - | - |
 | AICO operational | 0 | TH | - | - |
 | `Any time` | | | | |
-| INF contact | ... | (call to RB) | INF alive | INF contacted |
+| INF contact | * | (call to RB) | INF alive | INF contacted |
 | INF is killed | INF contact + 1 | RB | INF alive, R* alive, INF contacted | (guilt) |
-| `Pre-critical` |
-| R money meeting set up | ... | (call from RB) | AIM alive, RL/A alive | R money meeting |
+| `Decoys` | | | | |
+| Money meeting set up 1-4 | 2, 1, 2, 3 | (call from D1P, D3P, D5P, D7P) | D1-8 alive | Money meeting 1-4 |
+| Money meeting 1-4 | Money meeting 1-4 set up + 2 | Café 1,2,3,4 | Money meeting 1-4 set up, D1-8 alive | - |
+| `Pre-critical` | | | | |
+| R money meeting set up | 2 | (call TH -> RB) | AIM alive, RL/A alive | R money meeting |
 | R money transaction | R money meeting set up + 3 | Café 1 | AIM alive, RL/A alive, R money meeting | R money |
-| Merc contract meeting 1 set up | ... | (call from RB) | ML1 alive, RL/A alive | Merc meeting 1 |
+| Merc contract meeting 1 set up | R money trans + 1 | (call from RB) | ML1 alive, RL/A alive | Merc meeting 1 |
 | Merc contract meeting 2/3 set up | ML1 killed + 1 | (call from RB) | Merc meeting 1, ML1 dead, ML2/3 alive, RL/A alive | Merc meeting 2/3 |
-| Merc meeting 1-3 | Merc meeting 1-3 set up + 2 | MB | Merc meeting 1-3, ML1-3 alive, RL/A alive, R money | Merc bought 1-3 |
+| Merc meeting 1-3 | Merc meeting 1-3 set up + 2 | MB | Merc meeting set up 1-3, ML1-3 alive, RL/A alive, R money | Merc bought 1-3 |
 | `Critical (can't stop)` | | | | |
 | Merc weapons transaction | ... | MRF | ML* alive, WC alive, Merc bought * | Merc ready |
 | Coup | ... | TH | Merc ready | Coup happens |
@@ -32,6 +35,7 @@
  - MRF - Military Research Facility
  - TH - Town Hall
  - Café 1-5 - Cafés for meetings
+ - D1-8P - Decoy places
 
 ### People ###
 

@@ -2,5 +2,5 @@
 -cp /DevProjects/Fonts
 -lib plustd
 -main Main
--swf-header 400:300:60:000000
+-swf-header 800:600:60:000000
 -swf game.swf
