@@ -26,11 +26,14 @@ class Main extends Application {
         ,Surface(400, 300, 1)
         ,Assets([
              CFont.embed()
-            ,Embed.getBitmap("city", "png/city.png")
             ,new AssetBind([CFont.ASSET_ID], (am, _) -> {
                 consoleFont = CFont.initAuto(am, 0xFFFFFFFF, null, 0xFF999999);
                 false;
               })
+            ,Embed.getBitmap("city", "png/city.png")
+            ,Embed.getBitmap("interface", "png/interface.png")
+            ,Pal.bind()
+            ,UI.bind()
           ])
         ,Keyboard
         ,Mouse
@@ -51,14 +54,17 @@ class Dummy extends JamState {
   
   var c:City;
   var ren:CityRen;
+  var ui:UI;
   
   override public function to() {
     c = City.make(amB("city"));
     ren = new CityRen(400, 300);
+    ui = new UI();
   }
   
   override public function tick() {
-    ab.fill(Colour.BLACK);
+    ab.fill(Pal.colours[0]);
     ren.render(ab, c);
+    ui.render(ab);
   }
 }

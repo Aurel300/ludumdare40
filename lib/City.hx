@@ -86,6 +86,8 @@ class City {
         ret.buildings.push(Building.make(x, y, shape.fill, ids.shift(), switch (col) {
             case 0xFF00FF: Road;
             case 0x00FF00: Park;
+            case 0xFF0000: Cell;
+            case 0xFFFF00: Power;
             case _: Normal;
           }));
         build.blitAlpha(shape.fill, shape.minX, shape.minY);

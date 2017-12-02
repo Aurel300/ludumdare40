@@ -10,6 +10,9 @@ import sk.thenet.plat.Platform;
 using sk.thenet.FM;
 
 class CityRen {
+  public var crtEnable:Bool = false;
+  public var crt:Float = .35;
+  
   public var w:Int; // render size?
   public var h:Int;
   public var wh:Int;
@@ -18,14 +21,13 @@ class CityRen {
   
   public var angle:Float = Math.PI; // camera angle
   public var scale:Float = 5;
-  public var pitch:Float = .5;
+  public var pitch:Float = .5; //.92;
   public var camX:Float = 0; // current camera position
   public var camY:Float = 0;
   public var camTX:Float = 25.0; // camera target
   public var camTY:Float = 25.0;
   public var xar:Int = 0; // x artefact
   public var xarPh:Int = 0;
-  // TODO: + shake, artefacts, CRT effect, noise
   
   public function new(w:Int, h:Int) {
     this.w = w;
@@ -38,8 +40,10 @@ class CityRen {
   public function render(to:Bitmap, c:City):Void {
     camX = (camX * 10 + camTX) / 11;
     camY = (camY * 10 + camTY) / 11;
-    camTX = Platform.mouse.x;
+    camTX = 30; // Platform.mouse.x;
     camTY = Platform.mouse.y;
+    //pitch = Platform.mouse.x / 100;
+    scale = Platform.mouse.x / 100;
     xarPh++;
     xarPh %= 4;
     var co = Math.cos(angle + (FM.prng.nextMod(100) == 0 ? .2 : 0)) * scale;
@@ -59,13 +63,14 @@ class CityRen {
     }
     angle = oangle;
     to.setVector(vec);
+    /*
     for (b in c.buildings) {
       if (b.id != null) {
         var bx = -co * (b.x - camX) + si * (b.y - camY);
         var by = (-si * (b.x - camX) - co * (b.y - camY)) * pitch;
         Main.consoleFont.render(to, bx.floor() + wh, by.floor() + hh, b.id);
       }
-    }
+    }*/
   }
   
   public function renderBuilding(
@@ -78,12 +83,22 @@ class CityRen {
     inline function line(
       col:Colour, ox1:Float, oy1:Float, ox2:Float, oy2:Float, h:Float
     ):Void {
-      var x1 = -c * ox1 + s * oy1;
-      var y1 = (-s * ox1 - c * oy1) * pitch;
-      var x2 = -c * ox2 + s * oy2;
-      var y2 = (-s * ox2 - c * oy2) * pitch;
-      var p1 = new Point2DI((x1 + bx).floor() + wh, (y1 - h + by).floor() + hh);
-      var p2 = new Point2DI((x2 + bx).floor() + wh, (y2 - h + by).floor() + hh);
+      var x1 = -c * ox1 + s * oy1 + wh + bx;
+      var y1 = (-s * ox1 - c * oy1) * pitch + hh + by - h;
+      var x2 = -c * ox2 + s * oy2 + wh + bx;
+      var y2 = (-s * ox2 - c * oy2) * pitch + hh + by - h;
+      var p1 = new Point2DI(x1.floor(), y1.floor());
+      var p2 = new Point2DI(x2.floor(), y2.floor());
+      if (crtEnable) {
+        var gx1 = (x1 /= vw) - .5;
+        var gy1 = (y1 /= vh) - .5;
+        var gx2 = (x2 /= vw) - .5;
+        var gy2 = (y2 /= vh) - .5;
+        p1.x = ((x1 - crt * (gx1 * gx1 * gx1)) * vw).floor();
+        p1.y = ((y1 - crt * (gy1 * gy1 * gy1)) * vh).floor();
+        p2.x = ((x2 - crt * (gx2 * gx2 * gx2)) * vw).floor();
+        p2.y = ((y2 - crt * (gy2 * gy2 * gy2)) * vh).floor();
+      }
       for (p in Bresenham.getCurve(p1, p2)) {
         if (p.x >= xar && p.x < xar + 4) p.y += 2;
         if (p.x >= 0 && p.x < vw && p.y >= 0 && p.y < vh) {
@@ -120,10 +135,10 @@ class CityRen {
         var e = new Point2DF(s.x + bp.nextFloat() - .5, s.y + bp.nextFloat() - .5);
         line(0x6655FF00, s.x, s.y, e.x, e.y, 0);
       }
-      case Normal:
+      case _:
       var h = 0.0; // height
       for (f in b.floors) {
-        var col:Colour = 0x9900FF00 | (FM.prng.nextMod(0x20) << 24);
+        var col:Colour = b.col | (FM.prng.nextMod(0x20) << 24);
         for (i in 0...f.length) {
           var j = (i + 1) % f.length;
           line(col, f[i].x, f[i].y, f[j].x, f[j].y, h);
