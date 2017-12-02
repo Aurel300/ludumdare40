@@ -49,9 +49,11 @@ class UI {
                 << new Blit(b_tape[2].fluent >> new Grow(79, 79, 79, 79) << new AlphaMask(b_tapeOpening[i], true), -2, -1)
                 << new Blit(b_tape[0].fluent >> new Grow(79, 79, 79, 79) << new AlphaMask(b_tapeOpening[i], true), 2, 1)
                 << new Blit(b_tape[2].fluent >> new Grow(79, 79, 79, 79) << new AlphaMask(b_tapeOpening[i], true));
-              ret;
+              ret >> new Grow(-79, -79, -79, -79);
             }
           ]);
+        b_tapeBG = f >> new Cut(160, 392, 140, 119);
+        b_tapeNums = f >> new Cut(304, 392, 7, 143);
         false;
       });
   }
@@ -65,6 +67,8 @@ class UI {
   static var b_tape:Vector<Bitmap>;
   static var b_tapeOpening:Vector<Bitmap>;
   static var b_tapeMerged:Vector<Bitmap>;
+  static var b_tapeBG:Bitmap;
+  static var b_tapeNums:Bitmap;
   
   public var held:HeldButton = None;
   public var crt:Bitween;
@@ -74,22 +78,48 @@ class UI {
   public var hover:Int;
   public var tapePh:Float;
   public var tapeSpeed:Float;
+  public var tapeNum:Int;
+  public var tapeDigits:Array<Float>;
+  public var tapeDigitsT:Array<Float>;
   
   public function new() {
     crt = new Bitween(60);
     tapeControl = new Bitween(55);
     transcript = new Bitween(43);
-    crt.setTo(true);
+    crt.setTo(true, true);
     tapeControl.setTo(true);
     transcript.setTo(true);
     trWheel = 0;
     hover = 0;
     tapePh = 0;
     tapeSpeed = 0;
+    tapeDigits = [0, 0, 0, 0];
+    tapeDigitsT = [0, 0, 0, 0];
+    setTapeNum(1337);
+  }
+  
+  public function setTapeNum(num:Int):Void {
+    tapeNum = num;
+    var s = '0000$num'.substr(-4);
+    for (i in 0...4) {
+      tapeDigitsT[i] = s.charCodeAt(i) - '0'.code;
+    }
+  }
+  
+  function at(mx:Int, my:Int):HeldButton {
+    for (i in 0...5) {
+      if (mx.withinI(124 + i * 27, 124 + i * 27 + 26)
+          && my.withinI(Main.H - 92, Main.H - 92 + 21)) {
+        return TapeControl(i);
+      }
+    }
+    return None;
   }
   
   public function render(to:Bitmap):Void {
     to.blitAlpha(b_crt, 0, Main.H - Timing.quintOut.getI(crt.valueF, 99));
+    var tbgY = Main.H - Timing.quintOut.getI(crt.valueF, 119);
+    to.blitAlpha(b_tapeBG, 260, tbgY);
     var tcY = Main.H - Timing.quintOut.getI(tapeControl.valueF, 92);
     to.blitAlpha(b_tapeControl, 123, tcY);
     switch (held) {
@@ -113,7 +143,16 @@ class UI {
     to.blitAlpha(b_tape[3], 62, 62);
     to.blitAlpha(b_tape[4], 82, 82);
     */
-    to.blitAlpha(b_tapeMerged[tapePh.floor().clampI(0, 59)], 263 - 79, 133 - 79);
+    to.blitAlpha(b_tapeMerged[tapePh.floor().clampI(0, 59)], 263, tbgY - 48);
+    for (i in 0...4) {
+      to.blitAlphaRect(b_tapeNums, 268 + i * 9, tbgY + 104, 0, (tapeDigits[i] * 13).round(), 7, 12);
+      if (tapeDigitsT[i] < tapeDigits[i] - .5) {
+        tapeDigits[i] = (tapeDigits[i] * 5 + tapeDigitsT[i] + 10) / 6;
+        if (tapeDigits[i] > 10.0) tapeDigits[i] -= 10.0;
+      } else {
+        tapeDigits[i] = (tapeDigits[i] * 5 + tapeDigitsT[i]) / 6;
+      }
+    }
     
     tapeSpeed = Platform.mouse.x / 100.0;
     tapePh += tapeSpeed;
@@ -133,14 +172,12 @@ class UI {
   }
   
   public function mouseDown(mx:Int, my:Int):Void {
-    held = None;
-    for (i in 0...5) {
-      if (mx.withinI(124 + i * 27, 124 + i * 27 + 26)
-          && my.withinI(Main.H - 92, Main.H - 92 + 21)) {
-        Main.am.getSound("CasettePlay").play();
-        held = TapeControl(i);
-        break;
-      }
+    held = at(mx, my);
+    switch (held) {
+      case TapeControl(_):
+      Main.am.getSound("CasettePlay").play();
+      setTapeNum((tapeNum + FM.prng.nextMod(5)) % 10000);
+      case _:
     }
   }
   
