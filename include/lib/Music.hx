@@ -32,7 +32,7 @@ class Music {
   public static var channels:Array<IChannel> = [];
   
   public static function init():Void {
-    if (Debug.CONSOLE_COMMANDS) {
+    if (Debug.CONSOLE_COMMANDS && !Debug.DISABLE_MUSIC) {
       sk.thenet.app.Console.commands["track"] = (args:Array<String>) -> {
           if (args.length > 0 && tracks.indexOf(args[0]) != -1) {
             play(args[0]);
@@ -51,6 +51,9 @@ class Music {
   }
   
   public static function playMode(id:String, fadeIn:Bool, fadeOutOthers:Bool):Void {
+    if (Debug.DISABLE_MUSIC) {
+      return;
+    }
     playing.unshift(id);
     volumes.unshift(new Bitween(30));
     volumes[0].setTo(true, !fadeIn);

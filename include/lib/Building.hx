@@ -108,10 +108,12 @@ class Building {
   public var col:Colour;
   public var seed:UInt;
   public var prng:ParkMiller;
+  public var prngen:Generator;
   
   public function new() {
     seed = FM.prng.next();
     prng = new ParkMiller(seed);
+    prngen = new Generator(prng);
     /*
     this.x = x;
     this.y = y;

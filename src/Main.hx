@@ -40,7 +40,7 @@ class Main extends Application {
             ,Embed.getBitmap("city", "../png/city.png")
             ,Embed.getBitmap("interface", "../png/interface.png")
             ,Embed.getBitmap("portraits", "../png/portraits.png")
-            
+            /*
             ,Embed.getSound("Action1", "../wav/Action1.wav")
             ,Embed.getSound("Action2", "../wav/IgnoranceIsBliss/Music/Action2.wav")
             ,Embed.getSound("ActionChaos", "../wav/IgnoranceIsBliss/Music/ActionChaos.wav")
@@ -62,7 +62,7 @@ class Main extends Application {
             ,Embed.getSound("NotSoComfySong", "../wav/IgnoranceIsBliss/Music/NotSoComfySong.wav")
             ,Embed.getSound("Unused1", "../wav/IgnoranceIsBliss/Music/Unused1.wav")
             ,Embed.getSound("Unused2", "../wav/IgnoranceIsBliss/Music/Unused2.wav")
-            
+            */
             ,Embed.getSound("Alarm", "../wav/IgnoranceIsBliss/SFX/Alarm.wav")
             ,Embed.getSound("BootUp", "../wav/IgnoranceIsBliss/SFX/BootUp.wav")
             ,Embed.getSound("BootUp2", "../wav/IgnoranceIsBliss/SFX/BootUp2.wav")

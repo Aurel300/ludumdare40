@@ -1,9 +1,10 @@
 package lib;
 
 enum DialogueAction {
-  SP(txt:String, ?snd:String); // player says
-  S(txt:String, ?snd:String); // other says
-  SO(from:String, txt:String, ?snd:String); // other says
+  SP(txt:String, ?snd:String); // player says, pause
+  S(txt:String, ?snd:String); // other says, pause
+  SO(from:String, txt:String, ?snd:String); // other says, pause
+  NP(a:DialogueAction); // no pause
   Choice(cs:Array<{txt:String, res:String, ?label:String}>);
   GoToState(st:String);
   GoToLabel(n:String);

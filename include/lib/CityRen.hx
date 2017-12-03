@@ -21,15 +21,24 @@ class CityRen {
   public var hh:Int;
   public var center:Point2DI;
   
-  public var angle:Float = Math.PI; // camera angle
-  public var scale:Float = 5;
-  public var pitch:Float = .5; //.92;
+  public var angle:Float = 0; // camera angle
+  public var angleT:Float = .7;
+  public var scale:Float = 12;
+  public var scaleT:Float = 12;
+  public var zoomLevel:Int = 0;
+  public var pitch:Float = 0; //.92;
+  public var pitchT:Float = .5;
+  public var pitchLevel:Int = 1;
   public var camX:Float = 0; // current camera position
   public var camY:Float = 0;
   public var camTX:Float = 25.0; // camera target
   public var camTY:Float = 25.0;
   public var xar:Int = 0; // x artefact
   public var xarPh:Int = 0;
+  public var boundX1:Float;
+  public var boundX2:Float;
+  public var boundY1:Float;
+  public var boundY2:Float;
   
   public function new(x:Int, y:Int, w:Int, h:Int) {
     this.x = x;
@@ -38,12 +47,78 @@ class CityRen {
     this.h = h;
     wh = w >> 1;
     hh = h >> 1;
+    boundX1 = w * -.2;
+    boundX2 = w * 1.2;
+    boundY1 = h * -.2;
+    boundY2 = h * 1.2;
     center = new Point2DI(wh, hh);
   }
   
+  public function zoomIn():Void {
+    zoomLevel++;
+    if (zoomLevel > 3) zoomLevel = 3;
+    zoomScale();
+  }
+  
+  public function zoomOut():Void {
+    zoomLevel--;
+    if (zoomLevel < 0) zoomLevel = 0;
+    zoomScale();
+  }
+  
+  public function zoomScale():Void {
+    scaleT = (switch (zoomLevel) {
+        case 0: 12;
+        case 1: 20;
+        case 2: 30;
+        case _: 48;
+      });
+  }
+  
+  public function pitchUp():Void {
+    pitchLevel++;
+    if (pitchLevel > 3) pitchLevel = 3;
+    pitchScale();
+  }
+  
+  public function pitchDown():Void {
+    pitchLevel--;
+    if (pitchLevel < 0) pitchLevel = 0;
+    pitchScale();
+  }
+  
+  public function pitchScale():Void {
+    pitchT = (switch (pitchLevel) {
+        case 0: .2;
+        case 1: .5;
+        case 2: .75;
+        case _: 1;
+      });
+  }
+  
+  public function move(dx:Int, dy:Int):Void {
+    var c = Math.cos(angle) * (1.2 / scale);
+    var s = Math.sin(angle) * (1.2 / scale);
+    camTX += s * dy + c * dx;
+    camTY += c * dy - s * dx;
+  }
+  
   public function render(to:Bitmap):Void {
+    if (camTX < 0) {
+      camTX = camTX * .9;
+    } else if (camTX > City.CW) {
+      camTX = (camTX - City.CW) * .9 + City.CW;
+    }
+    if (camTY < 0) {
+      camTY = camTY * .9;
+    } else if (camTY > City.CH) {
+      camTY = (camTY - City.CH) * .9 + City.CH;
+    }
     camX = (camX * 10 + camTX) / 11;
     camY = (camY * 10 + camTY) / 11;
+    scale = (scale * 9 + scaleT) / 10;
+    pitch = (pitch * 9 + pitchT) / 10;
+    angle = (angle * 9 + angleT) / 10;
     //camTX = 30; // Platform.mouse.x;
     //camTY = Platform.mouse.y;
     //pitch = Platform.mouse.x / 100;
@@ -52,7 +127,6 @@ class CityRen {
     xarPh %= 4;
     var co = Math.cos(angle + (FM.prng.nextMod(100) == 0 ? .2 : 0)) * scale;
     var si = Math.sin(angle + (FM.prng.nextMod(100) == 0 ? .5 : 0)) * scale;
-    angle += .01;
     //pitch = angle % 1.0;
     //angle = -Math.PI;
     var oangle = angle;
@@ -89,6 +163,12 @@ class CityRen {
       var y1 = (-s * ox1 - c * oy1) * pitch + hh + by - bh;
       var x2 = -c * ox2 + s * oy2 + wh + bx;
       var y2 = (-s * ox2 - c * oy2) * pitch + hh + by - bh;
+      if (b.type != Road
+          && ((!x1.withinF(boundX1, boundX2) || !y1.withinF(boundY1, boundY2))
+              && (!x2.withinF(boundX1, boundX2) || !y2.withinF(boundY1, boundY2)))
+          && FM.prng.nextMod(10) < 8) {
+        return;
+      }
       var p1 = new Point2DI(x1.floor(), y1.floor());
       var p2 = new Point2DI(x2.floor(), y2.floor());
       if (crtEnable) {
@@ -117,12 +197,11 @@ class CityRen {
       b.seed = FM.prng.next();
     }
     b.prng.seed = b.seed;
-    var bp = new Generator(b.prng);
     switch (b.type) {
       case Road:
       for (i in 0...10) {
         var s = new Point2DF(
-             b.floors[0][0].x + (b.floors[0][2].x - b.floors[0][0].x) * bp.nextFloat()
+             b.floors[0][0].x + (b.floors[0][2].x - b.floors[0][0].x) * b.prngen.nextFloat()
             ,b.floors[0][0].y
           );
         var e = new Point2DF(s.x, b.floors[0][2].y);
@@ -131,10 +210,10 @@ class CityRen {
       case Park:
       for (i in 0...30) {
         var s = new Point2DF(
-             b.floors[0][0].x + (b.floors[0][2].x - b.floors[0][0].x) * bp.nextFloat()
-            ,b.floors[0][0].y + (b.floors[0][2].y - b.floors[0][0].y) * bp.nextFloat()
+             b.floors[0][0].x + (b.floors[0][2].x - b.floors[0][0].x) * b.prngen.nextFloat()
+            ,b.floors[0][0].y + (b.floors[0][2].y - b.floors[0][0].y) * b.prngen.nextFloat()
           );
-        var e = new Point2DF(s.x + bp.nextFloat() - .5, s.y + bp.nextFloat() - .5);
+        var e = new Point2DF(s.x + b.prngen.nextFloat() - .5, s.y + b.prngen.nextFloat() - .5);
         line(0x6655FF00, s.x, s.y, e.x, e.y, 0);
       }
       case _:

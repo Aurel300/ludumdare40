@@ -12,11 +12,13 @@ class Day {
     ];
   
   public var num:Int;
+  public var length:Int;
   public var events:Array<DayEvent>;
   public var actions:Array<Action>;
   
   public function new(events:Array<DayEvent>) {
     this.events = events;
+    length = 5;
     actions = [];
   }
   

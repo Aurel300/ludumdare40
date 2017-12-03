@@ -101,8 +101,9 @@ class Story {
     switch (a) {
       case ReadAbout(t):
       case TalkTo(c):
-      dayPos++;
       talkTo(c);
+      case TalkToState(c, st):
+      talkTo(c, st);
       case _:
     }
   }
@@ -119,12 +120,17 @@ class Story {
   }
   
   public function runDialogueAction(
-    a:DialogueAction, d:Dialogue, st:String, po:Int
+    a:DialogueAction, d:Dialogue, st:String, po:Int, ?pause:Bool = true
   ):{nst:String, npo:Int, stop:Bool} {
     return (switch (a) {
         case SP(txt, snd) | S(txt, snd) | SO(_, txt, snd):
         txt.split("\n").map(m -> Main.ui.write('$$B$m'));
-        {nst: st, npo: po + 1, stop: false};
+        if (pause) {
+          Main.ui.write("$B                    (click)");
+          dialogueQueue.push(Pause);
+        }
+        {nst: st, npo: po + 1, stop: pause};
+        case NP(a): runDialogueAction(a, d, st, po, false);
         case Choice(cs):
         var ci = 1;
         for (c in cs) {
@@ -157,11 +163,11 @@ class Story {
       });
   }
   
-  public function talkTo(c:String):Void {
+  public function talkTo(c:String, ?st:String):Void {
     var char = charMap[c];
     Main.ui.portrait = char.portrait;
     Main.ui.write('# ${char.name}');
-    state = TalkingTo(c, char.dialogue.start, 0);
+    state = TalkingTo(c, st != null ? st : char.dialogue.start, 0);
   }
   
   public function nextDay():Void {
@@ -170,7 +176,6 @@ class Story {
     if (dayNum < days.length) {
       Main.ui.write(' \n${days[dayNum].show()}\n ');
     }
-    talkTo("aim");
   }
   
   public function mouseDown(mx:Int, my:Int):Bool {
@@ -191,7 +196,9 @@ class Story {
     }
     switch (dialogueQueue[0]) {
       case Pause:
-      dialogueQueue.shift();
+      if (Main.ui.writeQueue.length < 2) {
+        dialogueQueue.shift();
+      }
       return true;
       case _:
     }
@@ -204,7 +211,7 @@ class Story {
     }
     switch (dialogueQueue[0]) {
       case Choice(cs):
-      if (i < cs.length) {
+      if (i < cs.length && Main.ui.writeQueue.length == 0) {
         switch (state) {
           case TalkingTo(c, st, po):
           Main.ui.write('$$B                       (${i + 1})');
@@ -246,6 +253,12 @@ class Story {
     Main.ui.tapeAlt.setTo(false);
     switch (state) {
       case None:
+      if (dayPos < days[dayNum].events.length) {
+        runDayEvent(days[dayNum].events[dayPos]);
+        dayPos++;
+      } else if (dayPos >= days[dayNum].length) {
+        nextDay();
+      }
       case TalkingTo(c, st, po):
       Main.ui.recording = true;
       Main.ui.portrait = charMap[c].portrait;
@@ -253,7 +266,14 @@ class Story {
       if (dialogueQueue.length > 0) {
         switch (dialogueQueue[0]) {
           case Wait(n):
+          if (n > 1) {
+            Main.ui.cursor = Wait;
+            dialogueQueue[0] = Wait(n - 1);
+          } else {
+            dialogueQueue.shift();
+          }
           case Pause:
+          Main.ui.cursor = Wait;
           case Choice(_):
           Main.ui.tapeAlt.setTo(true);
           case _:

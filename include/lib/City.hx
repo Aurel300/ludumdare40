@@ -7,8 +7,8 @@ import sk.thenet.geom.*;
 import sk.thenet.bmp.manip.*;
 
 class City {
-  static var CW = 66;
-  static var CH = 60;
+  public static var CW = 66;
+  public static var CH = 60;
   
   public static function binds():Array<Asset> {
     return [new AssetBind(["city"], (am, _) -> {
