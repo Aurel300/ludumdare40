@@ -35,6 +35,7 @@ You take control of an AI which oversees the operation of a city via console. Yo
  - polish
    - *CRT effect*
    - tape effect
+   - dialogue on/off - manip with scale to stretch / squeeze image
  - story
    - *timeline*
    - people bios

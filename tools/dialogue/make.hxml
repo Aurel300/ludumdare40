@@ -1,0 +1,6 @@
+-D PLUSTD_TARGET=neko
+-cp ../../include
+-cp /DevProjects/Fonts
+-lib plustd
+-main Main
+-neko dia.n

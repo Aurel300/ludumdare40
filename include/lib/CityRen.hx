@@ -20,7 +20,6 @@ class CityRen {
   public var wh:Int;
   public var hh:Int;
   public var center:Point2DI;
-  public var c:City;
   
   public var angle:Float = Math.PI; // camera angle
   public var scale:Float = 5;
@@ -32,12 +31,11 @@ class CityRen {
   public var xar:Int = 0; // x artefact
   public var xarPh:Int = 0;
   
-  public function new(x:Int, y:Int, w:Int, h:Int, c:City) {
+  public function new(x:Int, y:Int, w:Int, h:Int) {
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
-    this.c = c;
     wh = w >> 1;
     hh = h >> 1;
     center = new Point2DI(wh, hh);
@@ -62,7 +60,7 @@ class CityRen {
     if (xarPh == 0) {
       xar = FM.prng.nextMod(w);
     }
-    for (b in c.buildings) {
+    for (b in Main.city.buildings) {
       renderBuilding(vec, co, si, b);
     }
     angle = oangle;

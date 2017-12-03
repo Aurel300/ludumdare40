@@ -1,37 +1,10 @@
 package lib;
 
+import sk.thenet.app.*;
+
+using sk.thenet.FM;
+
 class Story {
-  public static function start():Story {
-    return new Story([
-        /* 1  */  new Day([])
-        /* 2  */ ,new Day([])
-        /* 3  */ ,new Day([])
-        /* 4  */ ,new Day([])
-        /* 5  */ ,new Day([])
-        /* 6  */ ,new Day([])
-        /* 7  */ ,new Day([])
-        /* 8  */ ,new Day([])
-        /* 9  */ ,new Day([])
-        /* 10 */ ,new Day([])
-        /* 11 */ ,new Day([])
-        /* 12 */ ,new Day([])
-      ], [], [
-        new Char("aim", "Grep Shamir", 0, [
-            "idle" => 0
-          ], new Dialogue("greet", [
-            "greet" => [
-                 S("Hello, AICO.\nWelcome on-line!")
-                ,Pause
-                ,S("hahaaa")
-                ,Choice([
-                     {txt: "Hello?", res: "greet"}
-                    ,{txt: "Bye", res: "stop"}
-                  ])
-              ]
-          ]))
-      ]);
-  }
-  
   public var days:Array<Day>;
   public var flags:Array<StoryFlag>;
   public var chars:Array<Char>;
@@ -52,14 +25,56 @@ class Story {
     this.days = days;
     this.flags = flags;
     this.chars = chars;
-    charMap = new Map<String, Char>();
-    for (c in chars) {
-      charMap[c.id] = c;
-    }
+    reload();
     tape = [];
     state = None;
     dayNum = -1;
     dayPos = 0;
+    if (Debug.CONSOLE_COMMANDS) {
+      Console.commands["story"] = (args:Array<String>) -> {
+          if (args.length != 0) {
+            state = (switch (args[0].toLowerCase()) {
+                case "n" | "none": None;
+                case "p" | "prev":
+                var delta = 1;
+                if (args.length > 0) {
+                  delta = Std.parseInt(args[1]);
+                }
+                dialogueQueue = [];
+                switch (state) {
+                  case TalkingTo(c, st, po): StoryState.TalkingTo(c, st, po - delta);
+                  case _: state;
+                }
+                case ("tt" | "talkingto") if (args.length == 4):
+                var pos = (if (args[3].charCodeAt(0).withinI('0'.code, '9'.code)) {
+                    Std.parseInt(args[3]);
+                  } else {
+                    resolveLabel(charMap[args[1]].dialogue, args[2], args[3]);
+                  });
+                TalkingTo(args[1], args[2], pos);
+                case _: state;
+              });
+          }
+          [Std.string(state)];
+        };
+      Console.commands["clrdia"] = (args:Array<String>) -> {
+          dialogueQueue = [];
+          [];
+        };
+      Console.commands["talkto"] = (args:Array<String>) -> {
+          if (args.length != 0) {
+            talkTo(args[0]);
+          }
+          [Std.string(state)];
+        };
+    }
+  }
+  
+  public function reload():Void {
+    charMap = new Map<String, Char>();
+    for (c in chars) {
+      charMap[c.id] = c;
+    }
   }
   
   public function evalCond(s:StoryCondition):Bool {
@@ -92,8 +107,19 @@ class Story {
     }
   }
   
+  function resolveLabel(d:Dialogue, st:String, n:String):Int {
+    for (i in 0...d.states[st].length) {
+      switch (d.states[st][i]) {
+        case Label(nn):
+        if (nn == n) return i;
+        case _:
+      }
+    }
+    return 0;
+  }
+  
   public function runDialogueAction(
-    a:DialogueAction, st:String, po:Int
+    a:DialogueAction, d:Dialogue, st:String, po:Int
   ):{nst:String, npo:Int, stop:Bool} {
     return (switch (a) {
         case SP(txt, snd) | S(txt, snd) | SO(_, txt, snd):
@@ -107,9 +133,12 @@ class Story {
         }
         dialogueQueue.push(a);
         {nst: st, npo: po + 1, stop: false};
-        case GoTo(res): {nst: res, npo: 0, stop: false};
+        case GoToState(nst): {nst: nst, npo: 0, stop: false};
+        case GoToLabel(n): {nst: st, npo: resolveLabel(d, st, n), stop: false};
+        case GoToStateLabel(nst, n): {nst: nst, npo: resolveLabel(d, nst, n), stop: false};
+        case Label(_): {nst: st, npo: po + 1, stop: false};
         case Conditional(c, a):
-        evalCond(c) ? runDialogueAction(a, st, po) : {nst: st, npo: po + 1, stop: false};
+        evalCond(c) ? runDialogueAction(a, d, st, po) : {nst: st, npo: po + 1, stop: false};
         case Wait(f):
         dialogueQueue.push(a);
         {nst: st, npo: po + 1, stop: true};
@@ -118,6 +147,12 @@ class Story {
         dialogueQueue.push(a);
         {nst: st, npo: po + 1, stop: true};
         case Sound(snd):
+        {nst: st, npo: po + 1, stop: false};
+        case Ending(e):
+        SEnding.ending = e;
+        Main.inst.applyState(Main.inst.getStateById("ending"));
+        {nst: st, npo: po, stop: true};
+        case _:
         {nst: st, npo: po + 1, stop: false};
       });
   }
@@ -132,6 +167,9 @@ class Story {
   public function nextDay():Void {
     dayNum++;
     dayPos = 0;
+    if (dayNum < days.length) {
+      Main.ui.write(' \n${days[dayNum].show()}\n ');
+    }
     talkTo("aim");
   }
   
@@ -170,7 +208,10 @@ class Story {
         switch (state) {
           case TalkingTo(c, st, po):
           Main.ui.write('$$B                       (${i + 1})');
-          state = TalkingTo(c, cs[i].res, 0);
+          state = TalkingTo(
+               c, cs[i].res
+              ,cs[i].label != null ? resolveLabel(charMap[c].dialogue, cs[i].res, cs[i].label) : 0
+            );
           checkDialogueExit();
           dialogueQueue.shift();
           case _:
@@ -184,7 +225,13 @@ class Story {
     switch (state) {
       case TalkingTo(_, "stop", _):
       state = None;
-      return true;
+      return true;/*
+      case TalkingTo(c, st, po):
+      var dia = charMap[c].dialogue;
+      if (!dia.states.exists(st)){ //} || po >= dia.states[st].length) {
+        state = None;
+        return true;
+      }*/
       case _:
     }
     return false;
@@ -195,13 +242,14 @@ class Story {
       nextDay();
     }
     Main.ui.recording = false;
-    Main.ui.portrait = -1;
+    Main.ui.portraitShow = false;
     Main.ui.tapeAlt.setTo(false);
     switch (state) {
       case None:
       case TalkingTo(c, st, po):
       Main.ui.recording = true;
       Main.ui.portrait = charMap[c].portrait;
+      Main.ui.portraitShow = true;
       if (dialogueQueue.length > 0) {
         switch (dialogueQueue[0]) {
           case Wait(n):
@@ -210,15 +258,21 @@ class Story {
           Main.ui.tapeAlt.setTo(true);
           case _:
         }
-      }
-      while (dialogueQueue.length == 0) {
-        var next = runDialogueAction(charMap[c].dialogue.states[st][po], st, po);
-        state = TalkingTo(c, next.nst, next.npo);
-        if (checkDialogueExit() || next.stop) {
-          break;
+      } else {
+        var dia = charMap[c].dialogue;
+        if (po >= dia.states[st].length) {
+          state = None;
+        } else {
+          while (dialogueQueue.length == 0) {
+            var next = runDialogueAction(dia.states[st][po], dia, st, po);
+            state = TalkingTo(c, next.nst, next.npo);
+            if (checkDialogueExit() || next.stop) {
+              break;
+            }
+            st = next.nst;
+            po = next.npo;
+          }
         }
-        st = next.nst;
-        po = next.npo;
       }
     }
   }

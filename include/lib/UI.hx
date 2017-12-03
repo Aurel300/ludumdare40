@@ -12,7 +12,7 @@ import font.*;
 using sk.thenet.FM;
 
 class UI {
-  static var TAPE_FRAMES:Int = 2; // 60
+  static var TAPE_FRAMES:Int = 60; // 2
   
   public static function binds():Array<AssetBind> {
     var loadA:Int = 0;
@@ -73,12 +73,12 @@ class UI {
         false;
       }), new AssetBind(["portraits"], (am, _) -> {
         var f = am.getBitmap("portraits").fluent;
-        b_portraits = Vector.fromArrayCopy([ for (i in 0...1) f ]);
+        b_portraits = Vector.fromArrayCopy([ for (i in 0...2) f >> new Cut(0, i * 87, 111, 87) ]);
         false;
       })];
   }
   
-  static var f_fonts:Array<Font>;
+  public static var f_fonts:Array<Font>;
   static var b_crt:Bitmap;
   static var b_tapeControl:Vector<Bitmap>;
   static var b_tapeControlDown:Vector<Bitmap>;
@@ -109,7 +109,8 @@ class UI {
   public var tapeDigitsT:Array<Float>;
   public var ren:CityRen;
   public var recording:Bool = false;
-  public var portrait:Int = -1;
+  public var portrait:Int = 0;
+  public var portraitShow:Bool = false;
   
   public var writeBuffer:Bitmap;
   public var writeQueue:Array<String> = [];
@@ -174,16 +175,16 @@ class UI {
     // crt
     var crtY = Main.H - Timing.quintOut.getI(crt.valueF, 99);
     to.blitAlpha(b_crt, 0, crtY);
-    if (portrait != -1) {
+    if (portraitShow) {
       crtDisplay.setTo(true);
     } else {
       crtDisplay.setTo(false);
     }
     if (crtDisplay.isOn) {
-      to.blitAlpha(b_portraits[0], 6, crtY + 6);
+      to.blitAlpha(b_portraits[portrait], 6, crtY + 6);
     } else if (!crtDisplay.isOff) {
       var rev = 43 - Timing.circOut.getI(crtDisplay.valueF, 43);
-      to.blitAlphaRect(b_portraits[0], 6 + rev, crtY + 6 + rev, rev, rev, 111 - rev * 2, 87 - rev * 2);
+      to.blitAlphaRect(b_portraits[portrait], 6 + rev, crtY + 6 + rev, rev, rev, 111 - rev * 2, 87 - rev * 2);
     }
     var tbgY = Main.H - Timing.quintOut.getI(crt.valueF, 119);
     to.blitAlpha(b_tapeBG, 260, tbgY);
@@ -226,7 +227,7 @@ class UI {
       }
     }
     
-    tapeSpeed = Platform.mouse.x / 100.0;
+    tapeSpeed = Platform.mouse.x / 250.0;
     tapePh += tapeSpeed;
     if (tapePh < 0) tapePh += TAPE_FRAMES;
     if (tapePh >= TAPE_FRAMES) tapePh -= TAPE_FRAMES;
@@ -245,27 +246,40 @@ class UI {
     if (writeQueue.length == 0) {
       writePh = 0;
     } else if (writePh == 0 && trWheel == 0) {
-      if (writeQueue[0].charAt(writePos) != " ") {
-        SFX.s('Typewriter${writeSound + 1}');
-        writeSound += 1 + FM.prng.nextMod(3);
-        writeSound %= 4;
-      }
-      writePos++;
-      if (writePos >= writeQueue[0].length) {
+      if (Debug.FAST_WRITING) {
         writePos = 0;
         var rs = f_fonts[0].render(writeBuffer, 2, 70, writeQueue.shift(), f_fonts);
         trWheel = rs.y - 70 + 2;
+      } else {
+        if (writeQueue[0].charAt(writePos) != " ") {
+          SFX.s('Typewriter${writeSound + 1}');
+          writeSound += 1 + FM.prng.nextMod(3);
+          writeSound %= 4;
+        }
+        writePos++;
+        if (writePos >= writeQueue[0].length) {
+          writePos = 0;
+          var rs = f_fonts[0].render(writeBuffer, 2, 70, writeQueue.shift(), f_fonts);
+          trWheel = rs.y - 70 + 2;
+        }
       }
     }
     writePh++;
     writePh %= 4;
     if (trWheel > 0) {
-      var tmp = writeBuffer.fluent >> new Cut(0, 1, writeBuffer.width, writeBuffer.height - 1);
-      writeBuffer.fill(0);
-      writeBuffer.blitAlpha(tmp, 0, 0);
-      trWheel--;
-      if (trWheel == 8) {
-        SFX.s('Typewriter5');
+      if (Debug.FAST_WRITING) {
+        var tmp = writeBuffer.fluent >> new Cut(0, trWheel, writeBuffer.width, writeBuffer.height - trWheel);
+        writeBuffer.fill(0);
+        writeBuffer.blitAlpha(tmp, 0, 0);
+        trWheel = 0;
+      } else {
+        var tmp = writeBuffer.fluent >> new Cut(0, 1, writeBuffer.width, writeBuffer.height - 1);
+        writeBuffer.fill(0);
+        writeBuffer.blitAlpha(tmp, 0, 0);
+        trWheel--;
+        if (trWheel == 8) {
+          SFX.s('Typewriter5');
+        }
       }
     }
     

@@ -40,32 +40,32 @@
 
 ### People ###
 
- - AICO - Artificial Intelligence Chief of Operations (player)
+ - AICO (player) - Artificial Intelligence Chief of Operations
    - ...
- - AIM - AI Manager
+ - AIM (Grep Shamir) - AI Manager
    - your immediate superior
    - first person you talk to (least suspect)
    - secretly supports rebellion (donates money)
    - wants AICO to go rampant and support the rebellion
- - MAY - Mayor
- - INF - Informant
+ - MAY (Roy Bezier) - Mayor
+ - INF (Dyne Schema) - Informant
    - part of the rebellion, traitor
    - any contact = suspected by rebellion and killed
- - ML1 - Mercenary leader 1
+ - ML1 (Clip Mech) - Mercenary leader 1
    - leads the mercenaries which will perform coup
- - ML2 - Mercenary leader 2
+ - ML2 (Mod Choke) - Mercenary leader 2
    - (if ML1 is killed off, another is used)
- - RL - Rebellion leader
+ - RL (Arin Robotka) - Rebellion leader
    - 
- - RLA - Reb. leader's aide
+ - RLA (Amiga Turner) - Reb. leader's aide
    - 
  (RL/A - RL + RLA)
  - R... - Reb. members
    - 
- - WC - Weapons Contact
+ - WC (Degauss Band) - Weapons Contact
    - part of a military research facility
    - provides weapons for the rebellion
- - HAC1-3 - Hackers
+ - HAC (Cyberbob) - Hacker
 
 ### People locations ###
 

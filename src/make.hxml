@@ -1,5 +1,6 @@
 -D PLUSTD_TARGET=flash
 -cp /DevProjects/Fonts
+-cp ../include
 -lib plustd
 -main Main
 -swf-header 800:600:60:000000
