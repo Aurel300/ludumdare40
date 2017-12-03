@@ -16,6 +16,8 @@ typedef CFont = font.FontNS;
 
 class Main extends Application {
   public static var consoleFont:Font;
+  public static var story:Story;
+  public static var ui:UI;
   public static var am:AssetManager;
   public static var W:Int = 400;
   public static var H:Int = 300;
@@ -27,13 +29,16 @@ class Main extends Application {
         ,Surface(400, 300, 1)
         ,Assets([
              Embed.getBitmap(CFont.ASSET_ID, "ns8x16.png")
+            ,FontBasic3x9.embed()
             ,new AssetBind([CFont.ASSET_ID], (am, _) -> {
                 consoleFont = CFont.initAuto(am, 0xFFFFFFFF, null, 0xFF999999);
                 false;
               })
             ,Embed.getBitmap("city", "png/city.png")
             ,Embed.getBitmap("interface", "png/interface.png")
+            ,Embed.getBitmap("portraits", "png/portraits.png")
             
+            //,Embed.getSound("Action1", "wav/Action1.ogg")
             /*
             ,Embed.getSound("Action1", "wav/Action1.wav")
             ,Embed.getSound("Action2", "wav/IgnoranceIsBliss/Music/Action2.wav")
@@ -83,14 +88,14 @@ class Main extends Application {
             ,Embed.getSound("ZoomOut", "wav/IgnoranceIsBliss/SFX/ZoomOut.wav")
             
             ,Pal.bind()
-            ,UI.bind()
-          ])
+          ].concat((cast UI.binds():Array<Asset>)))
         ,Keyboard
         ,Mouse
         ,Console
         //,ConsoleRemote("localhost", 8001)
       ]);
     am = assetManager;
+    story = Story.start();
     preloader = new DummyPreloader(this, "dummy");
     addState(new Dummy(this));
     #if flash
@@ -108,23 +113,29 @@ class Dummy extends JamState {
   var ui:UI;
   
   override public function to() {
-    //amS("Action2").play(Forever);
+    //amS("Action1").play(Forever);
     c = City.make(amB("city"));
-    ren = new CityRen(400, 300);
-    ui = new UI();
+    ren = new CityRen(33, 0, 334, 280, c);
+    ui = new UI(ren);
   }
   
   override public function tick() {
+    Main.story.tick();
     ab.fill(Pal.colours[0]);
-    ren.render(ab, c);
     ui.render(ab);
   }
   
   override public function mouseDown(mx:Int, my:Int):Void {
+    if (Main.story.mouseDown(mx, my)) {
+      return;
+    }
     ui.mouseDown(mx, my);
   }
   
   override public function mouseUp(mx:Int, my:Int):Void {
+    if (Main.story.mouseUp(mx, my)) {
+      return;
+    }
     ui.mouseUp(mx, my);
   }
 }

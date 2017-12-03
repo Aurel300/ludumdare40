@@ -17,6 +17,21 @@ You take control of an AI which oversees the operation of a city via console. Yo
 
 ## TODO ##
 
+ - priority
+   - core gameplay
+     - day, time units
+     . text in transcript
+     - record interactions
+     . dialogue system, triggers and conditions
+     - actions
+       - (read about)
+       - look into logs for (free)
+       - watch / listen to tapes
+       - event (scheduled for certain times of day)
+       - skip rest of day
+       . talk to ...
+       - (search the Net for ...)
+
  - polish
    - *CRT effect*
    - tape effect
@@ -29,7 +44,7 @@ You take control of an AI which oversees the operation of a city via console. Yo
  - UI
    - *city navigation*
    - dialogues
-   - tape recordings / transcript
+   - *tape recordings / transcript*
  - ...
 
 ## Sound / music list ##

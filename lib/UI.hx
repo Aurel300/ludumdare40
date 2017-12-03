@@ -7,16 +7,25 @@ import sk.thenet.bmp.*;
 import sk.thenet.bmp.manip.*;
 import sk.thenet.plat.Platform;
 
+import font.*;
+
 using sk.thenet.FM;
 
 class UI {
-  public static function bind():AssetBind {
-    return new AssetBind(["interface", "pal"], (am, _) -> {
+  static var TAPE_FRAMES:Int = 2; // 60
+  
+  public static function binds():Array<AssetBind> {
+    var loadA:Int = 0;
+    var loadB:Int = 0;
+    return [new AssetBind(["interface", "pal"], (am, _) -> {
+        if (loadA++ < 1) return false;
         var f = am.getBitmap("interface").fluent;
         b_crt = f >> new Cut(0, 0, 123, 102);
-        b_tapeControl = f >> new Cut(0, 102, 137, 26);
+        b_tapeControl
+          = Vector.fromArrayCopy([ for (i in 0...2) f >> new Cut(i * 137, 102, 137, 26) ]);
         b_tapeControlDown
-          = Vector.fromArrayCopy([ for (i in 0...5) f >> new Cut(1 + 27 * i, 128, 27, 26) ]);
+          = Vector.fromArrayCopy([ for (i in 0...5) f >> new Cut(1 + 27 * i, 128, 27, 26) ]
+          .concat([ for (i in 0...4) f >> new Cut(138 + 27 * i, 128, i == 3 ? 54 : 27, 26) ]));
         b_transcript = f >> new Cut(0, 154, 137, 71);
         b_transcriptWheel
           = Vector.fromArrayCopy([ for (i in 0...3) f >> new Cut(i * 5, 225, 5, 17) ]
@@ -25,7 +34,6 @@ class UI {
           = Vector.fromArrayCopy([ for (i in 0...4) f >> new Cut(128 + i * 16, 16, 16, 16) ]);
         b_tape = new Vector<Bitmap>(6);
         b_tape[0] = f >> new Cut(0, 242, 158, 158);
-        trace(Pal.colours[21].toStringHex());
         b_tape[1] = b_tape[0].fluent
           >> new ReplaceColour(Pal.colours[20], Pal.colours[11])
           << new ReplaceColour(Pal.colours[17], Pal.colours[13])
@@ -39,27 +47,40 @@ class UI {
         b_tape[4] = b_tape[3].fluent >> new ReplaceColour(Pal.colours[1], 0);
         b_tape[3].fluent << new ReplaceColour(Pal.colours[20], 0);
         b_tapeOpening = Vector.fromArrayCopy([
-            for (i in 0...60) b_tape[3].fluent >> new Rotate((i / 60) * Math.PI * 2)
+            for (i in 0...TAPE_FRAMES) b_tape[3].fluent >> new Rotate((i / TAPE_FRAMES) * Math.PI * 2)
           ]);
         b_tapeMerged = Vector.fromArrayCopy([
-            for (i in 0...60) {
+            for (i in 0...TAPE_FRAMES) {
               var ret = Platform.createBitmap(b_tape[0].width * 2, b_tape[0].height * 2, 0).fluent;
               ret << new Blit(b_tape[1], 79, 79)
                 << new Blit(b_tape[2].fluent >> new Copy() << new AlphaMask(b_tape[4], true), 79, 79)
                 << new Blit(b_tape[2].fluent >> new Grow(79, 79, 79, 79) << new AlphaMask(b_tapeOpening[i], true), -2, -1)
                 << new Blit(b_tape[0].fluent >> new Grow(79, 79, 79, 79) << new AlphaMask(b_tapeOpening[i], true), 2, 1)
-                << new Blit(b_tape[2].fluent >> new Grow(79, 79, 79, 79) << new AlphaMask(b_tapeOpening[i], true));
+                << new Blit(b_tape[2].fluent >> new Grow(81, 77, 81, 77) << new AlphaMask(b_tapeOpening[i], true));
               ret >> new Grow(-79, -79, -79, -79);
             }
           ]);
         b_tapeBG = f >> new Cut(160, 392, 140, 119);
         b_tapeNums = f >> new Cut(304, 392, 7, 143);
+        b_overlay = f >> new Cut(328, 50, 400, 300);
         false;
-      });
+      }), new AssetBind(["pal", FontNS.ASSET_ID, FontBasic3x9.ASSET_ID], (am, _) -> {
+        if (loadB++ < 2) return false;
+        f_fonts = [
+             FontNS.initAuto(am, Pal.colours[1], Pal.colours[13], Pal.colours[21], 0, 1)
+            ,FontBasic3x9.initAuto(am, Pal.colours[1], Pal.colours[13], Pal.colours[21], 0, 1)
+          ];
+        false;
+      }), new AssetBind(["portraits"], (am, _) -> {
+        var f = am.getBitmap("portraits").fluent;
+        b_portraits = Vector.fromArrayCopy([ for (i in 0...1) f ]);
+        false;
+      })];
   }
   
+  static var f_fonts:Array<Font>;
   static var b_crt:Bitmap;
-  static var b_tapeControl:Bitmap;
+  static var b_tapeControl:Vector<Bitmap>;
   static var b_tapeControlDown:Vector<Bitmap>;
   static var b_transcript:Bitmap;
   static var b_transcriptWheel:Vector<Bitmap>;
@@ -69,10 +90,15 @@ class UI {
   static var b_tapeMerged:Vector<Bitmap>;
   static var b_tapeBG:Bitmap;
   static var b_tapeNums:Bitmap;
+  static var b_overlay:Bitmap;
+  static var b_portraits:Vector<Bitmap>;
   
   public var held:HeldButton = None;
+  public var overlay:Bitween;
   public var crt:Bitween;
+  public var crtDisplay:Bitween;
   public var tapeControl:Bitween;
+  public var tapeAlt:Bitween;
   public var transcript:Bitween;
   public var trWheel:Int;
   public var hover:Int;
@@ -81,12 +107,26 @@ class UI {
   public var tapeNum:Int;
   public var tapeDigits:Array<Float>;
   public var tapeDigitsT:Array<Float>;
+  public var ren:CityRen;
+  public var recording:Bool = false;
+  public var portrait:Int = -1;
   
-  public function new() {
+  public var writeBuffer:Bitmap;
+  public var writeQueue:Array<String> = [];
+  public var writePos:Int = 0;
+  public var writePh:Int = 0;
+  public var writeSound:Int = 0;
+  
+  public function new(ren:CityRen) {
+    Main.ui = this;
+    overlay = new Bitween(120);
     crt = new Bitween(60);
+    crtDisplay = new Bitween(20);
     tapeControl = new Bitween(55);
+    tapeAlt = new Bitween(40);
     transcript = new Bitween(43);
-    crt.setTo(true, true);
+    overlay.setTo(true);
+    crt.setTo(true);
     tapeControl.setTo(true);
     transcript.setTo(true);
     trWheel = 0;
@@ -96,6 +136,8 @@ class UI {
     tapeDigits = [0, 0, 0, 0];
     tapeDigitsT = [0, 0, 0, 0];
     setTapeNum(1337);
+    writeBuffer = Platform.createBitmap(129, 70 + 16, 0);
+    this.ren = ren;
   }
   
   public function setTapeNum(num:Int):Void {
@@ -106,44 +148,74 @@ class UI {
     }
   }
   
+  public function write(msg:String):Void {
+    msg.split("\n").map(writeQueue.push);
+  }
+  
   function at(mx:Int, my:Int):HeldButton {
-    for (i in 0...5) {
-      if (mx.withinI(124 + i * 27, 124 + i * 27 + 26)
-          && my.withinI(Main.H - 92, Main.H - 92 + 21)) {
-        return TapeControl(i);
+    if (tapeAlt.isOn || tapeAlt.isOff) {
+      for (i in 0...(tapeAlt.isOn ? 5 : 4)) {
+        if (mx.withinI(124 + i * 27, 124 + i * 27 + 26)
+            && my.withinI(Main.H - 92, Main.H - 92 + 21)) {
+          return tapeAlt.isOn ? TapeControlAlt(i.minI(3)) : TapeControl(i);
+        }
       }
     }
     return None;
   }
   
   public function render(to:Bitmap):Void {
-    to.blitAlpha(b_crt, 0, Main.H - Timing.quintOut.getI(crt.valueF, 99));
+    // overlay and city
+    var ovY = -300 + Timing.quintOut.getI(overlay.valueF, 300);
+    ren.scale = overlay.valueF * 5;
+    ren.render(to);
+    to.blitAlpha(b_overlay, 0, ovY);
+    
+    // crt
+    var crtY = Main.H - Timing.quintOut.getI(crt.valueF, 99);
+    to.blitAlpha(b_crt, 0, crtY);
+    if (portrait != -1) {
+      crtDisplay.setTo(true);
+    } else {
+      crtDisplay.setTo(false);
+    }
+    if (crtDisplay.isOn) {
+      to.blitAlpha(b_portraits[0], 6, crtY + 6);
+    } else if (!crtDisplay.isOff) {
+      var rev = 43 - Timing.circOut.getI(crtDisplay.valueF, 43);
+      to.blitAlphaRect(b_portraits[0], 6 + rev, crtY + 6 + rev, rev, rev, 111 - rev * 2, 87 - rev * 2);
+    }
     var tbgY = Main.H - Timing.quintOut.getI(crt.valueF, 119);
     to.blitAlpha(b_tapeBG, 260, tbgY);
+    
+    // tape control
     var tcY = Main.H - Timing.quintOut.getI(tapeControl.valueF, 92);
-    to.blitAlpha(b_tapeControl, 123, tcY);
+    var tcY1 = tcY + Timing.quadInOut.getI(tapeAlt.valueF, 40);
+    var tcY2 = tcY + 40 - Timing.quadInOut.getI(tapeAlt.valueF, 40);
+    if (!tapeAlt.isOn) {
+      to.blitAlpha(b_tapeControl[0], 123, tcY1);
+      if (recording) {
+        to.blitAlpha(b_tapeControlDown[4], 124 + 4 * 27, tcY1);
+      }
+    }
+    if (!tapeAlt.isOff) {
+      to.blitAlpha(b_tapeControl[1], 123, tcY2);
+    }
     switch (held) {
       case TapeControl(i):
-      to.blitAlpha(b_tapeControlDown[i], 124 + i * 27, tcY);
+      to.blitAlpha(b_tapeControlDown[i], 124 + i * 27, tcY1);
+      case TapeControlAlt(i):
+      to.blitAlpha(b_tapeControlDown[5 + i], 124 + i * 27, tcY2);
       case _:
     }
+    
+    // transcript
     var trY = Main.H - Timing.quintOut.getI(transcript.valueF, 71);
     to.blitAlpha(b_transcript, 123, trY);
-    to.blitAlpha(b_transcriptWheel[2 - (trWheel >> 2)], 123, trY);
-    to.blitAlpha(b_transcriptWheel[5 - (trWheel >> 2)], 256, trY);
-    trWheel++;
-    trWheel %= 12;
-    crt.tick();
-    tapeControl.tick();
-    transcript.tick();
-    /*
-    to.blitAlpha(b_tape[0], 2, 2);
-    to.blitAlpha(b_tape[1], 22, 22);
-    to.blitAlpha(b_tape[2], 42, 42);
-    to.blitAlpha(b_tape[3], 62, 62);
-    to.blitAlpha(b_tape[4], 82, 82);
-    */
-    to.blitAlpha(b_tapeMerged[tapePh.floor().clampI(0, 59)], 263, tbgY - 48);
+    to.blitAlpha(b_transcriptWheel[(trWheel >> 2) % 3], 123, trY);
+    to.blitAlpha(b_transcriptWheel[3 + ((trWheel >> 2) % 3)], 256, trY);
+    to.blitAlpha(writeBuffer, 127, trY + 1);
+    to.blitAlpha(b_tapeMerged[tapePh.floor().clampI(0, TAPE_FRAMES - 1)], 263, tbgY - 48);
     for (i in 0...4) {
       to.blitAlphaRect(b_tapeNums, 268 + i * 9, tbgY + 104, 0, (tapeDigits[i] * 13).round(), 7, 12);
       if (tapeDigitsT[i] < tapeDigits[i] - .5) {
@@ -156,8 +228,8 @@ class UI {
     
     tapeSpeed = Platform.mouse.x / 100.0;
     tapePh += tapeSpeed;
-    if (tapePh < 0) tapePh += 60;
-    if (tapePh >= 60) tapePh -= 60;
+    if (tapePh < 0) tapePh += TAPE_FRAMES;
+    if (tapePh >= TAPE_FRAMES) tapePh -= TAPE_FRAMES;
     
     var mx = Platform.mouse.x;
     var my = Platform.mouse.y;
@@ -169,29 +241,71 @@ class UI {
     to.blitAlpha(b_cursor[1 + (hover >> 3)], mx, my);
     hover++;
     hover %= 24;
+    
+    if (writeQueue.length == 0) {
+      writePh = 0;
+    } else if (writePh == 0 && trWheel == 0) {
+      if (writeQueue[0].charAt(writePos) != " ") {
+        SFX.s('Typewriter${writeSound + 1}');
+        writeSound += 1 + FM.prng.nextMod(3);
+        writeSound %= 4;
+      }
+      writePos++;
+      if (writePos >= writeQueue[0].length) {
+        writePos = 0;
+        var rs = f_fonts[0].render(writeBuffer, 2, 70, writeQueue.shift(), f_fonts);
+        trWheel = rs.y - 70 + 2;
+      }
+    }
+    writePh++;
+    writePh %= 4;
+    if (trWheel > 0) {
+      var tmp = writeBuffer.fluent >> new Cut(0, 1, writeBuffer.width, writeBuffer.height - 1);
+      writeBuffer.fill(0);
+      writeBuffer.blitAlpha(tmp, 0, 0);
+      trWheel--;
+      if (trWheel == 8) {
+        SFX.s('Typewriter5');
+      }
+    }
+    
+    overlay.tick();
+    crt.tick();
+    crtDisplay.tick();
+    tapeControl.tick();
+    tapeAlt.tick();
+    transcript.tick();
   }
   
-  public function mouseDown(mx:Int, my:Int):Void {
+  public function mouseDown(mx:Int, my:Int):Bool {
     held = at(mx, my);
     switch (held) {
-      case TapeControl(_):
+      case TapeControl(_) | TapeControlAlt(_):
       Main.am.getSound("CasettePlay").play();
       setTapeNum((tapeNum + FM.prng.nextMod(5)) % 10000);
       case _:
+      return false;
     }
+    return true;
   }
   
-  public function mouseUp(mx:Int, my:Int):Void {
+  public function mouseUp(mx:Int, my:Int):Bool {
     switch (held) {
       case TapeControl(_):
       Main.am.getSound("CasetteStop").play();
+      case TapeControlAlt(i):
+      Main.am.getSound("CasetteStop").play();
+      Main.story.uiSelect(i);
       case _:
+      return false;
     }
     held = None;
+    return true;
   }
 }
 
 enum HeldButton {
   None;
   TapeControl(i:Int);
+  TapeControlAlt(i:Int);
 }

@@ -96,7 +96,6 @@ class City {
       }
       vi++;
     }
-    trace('$bc buildings');
     return ret;
   }
   
