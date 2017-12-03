@@ -27,7 +27,7 @@ class Scenario {
   
   public static function start():Story {
     return new Story([
-        /* 1  */  new Day([Action(TalkToState("aim", "intro"))])
+        /* 1  */  new Day([]) //Action(TalkToState("aim", "intro"))])
         /* 2  */ ,new Day([])
         /* 3  */ ,new Day([])
         /* 4  */ ,new Day([])

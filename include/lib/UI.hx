@@ -177,6 +177,7 @@ class UI {
       } else if (mx > 333) {
         return TurnRight;
       } else {
+        ren.pointer(mx, my);
         return Move(mx, my);
       }
     }
@@ -218,6 +219,11 @@ class UI {
           held = Move(Platform.mouse.x, Platform.mouse.y);
           Move;
           case _:
+          var dx = (3).negposI(Main.inst.keyboard.isHeld(KeyD), Main.inst.keyboard.isHeld(KeyA));
+          var dy = (3).negposI(Main.inst.keyboard.isHeld(KeyS), Main.inst.keyboard.isHeld(KeyW));
+          var da = (.02).negposF(Main.inst.keyboard.isHeld(KeyE), Main.inst.keyboard.isHeld(KeyQ));
+          ren.angleT += da;
+          ren.move(dx, dy);
           switch (at(Platform.mouse.x, Platform.mouse.y)) {
             case TurnLeft: TurnLeft;
             case TurnRight: TurnRight;

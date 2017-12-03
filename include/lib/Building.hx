@@ -114,15 +114,5 @@ class Building {
     seed = FM.prng.next();
     prng = new ParkMiller(seed);
     prngen = new Generator(prng);
-    /*
-    this.x = x;
-    this.y = y;
-    var s:Float = 2.0 + FM.prng.nextMod(3);
-    x += FM.prng.nextMod(2);
-    y += FM.prng.nextMod(2);
-    floors = [ for (i in 0...4 + FM.prng.nextMod(6))
-        [new Point2DF(-s, -s), new Point2DF(s, -s), new Point2DF(s, s), new Point2DF(-s, s)]
-      ];
-    */
   }
 }
