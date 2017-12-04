@@ -45,6 +45,11 @@ class Story {
                   case TalkingTo(c, st, po): StoryState.TalkingTo(c, st, po - delta);
                   case _: state;
                 }
+                case ("d" | "day") if (args.length == 2):
+                dialogueQueue = [];
+                dayNum = Std.parseInt(args[1]) - 2;
+                nextDay();
+                None;
                 case ("tt" | "talkingto") if (args.length == 4):
                 var pos = (if (args[3].charCodeAt(0).withinI('0'.code, '9'.code)) {
                     Std.parseInt(args[3]);
@@ -85,21 +90,40 @@ class Story {
         case All(a): [ for (ss in a) if (evalCond(ss)) 1 ].length == a.length;
         case Any(a): [ for (ss in a) if (evalCond(ss)) 1 ].length > 0;
         case Func(f): f(this);
+        case Reachable(char): charMap[char].reachable;
+        case InCity(char): charMap[char].inCity;
         case Alive(char): charMap[char].alive;
+        case Location(char, loc): charMap[char].location == loc;
         // TODO:
         case Recorded(event): false;
       });
   }
   
   public function runDayEvent(d:DayEvent):Bool {
-    switch (d) {
-      case Action(a): runAction(a); return true;
-      case Call(id):
-      case Meeting(id):
-      case Conditional(c, e): if (evalCond(c)) return runDayEvent(e);
-      case At(t, e): if (dayTime >= t) return runDayEvent(e);
-    }
-    return false;
+    return (switch (d) {
+        case Action(a): runAction(a); true;
+        case Call(cell, from, to, st):
+        Main.ui.ren.activate(Main.city.idMap[cell], 540, TalkToState(from, st));
+        true;
+        case Meeting(id, start, end, a):
+        if (dayTime.withinI(start, end) && Main.ui.ren.bug != null
+            && Main.ui.ren.bug.id == id) {
+          Main.ui.ren.activate(Main.ui.ren.bug, 540, a);
+        }
+        true;
+        case CharReachable(id, r): charMap[id].reachable = r; true;
+        case CharInCity(id, r): charMap[id].inCity = r; true;
+        case CharAlive(id, r): charMap[id].alive = r; true;
+        case CharArmed(id, r): charMap[id].armed = r; true;
+        case CharMove(id, from, to, speed):
+        Main.ui.ren.figs.push(new Fig(id, from, to, speed));
+        true;
+        case CharLocation(id, to): charMap[id].location = to; true;
+        case Conditional(c, e): (evalCond(c) && runDayEvent(e));
+        case At(t, e): (dayTime >= t && runDayEvent(e));
+        case Music(id): Music.play(id); true;
+        case _: false;
+      });
   }
   
   public function runAction(a:Action):Void {
@@ -128,8 +152,36 @@ class Story {
     a:DialogueAction, d:Dialogue, st:String, po:Int, ?pause:Bool = true
   ):{nst:String, npo:Int, stop:Bool} {
     return (switch (a) {
-        case SP(txt, snd) | S(txt, snd) | SO(_, txt, snd):
+        case S(txt, snd) | SO(_, txt, snd):
         txt.split("\n").map(m -> Main.ui.write('$$B$m'));
+        if (pause) {
+          Main.ui.write("$B                    (click)");
+          dialogueQueue.push(Pause);
+        }
+        {nst: st, npo: po + 1, stop: pause};
+        case SP(txt, snd):
+        txt.split("\n").map(m -> Main.ui.write('$$D$m'));
+        if (pause) {
+          Main.ui.write("$B                    (click)");
+          dialogueQueue.push(Pause);
+        }
+        {nst: st, npo: po + 1, stop: pause};
+        case EvalS(msg):
+        var parts = msg.split("%");
+        var i = 1;
+        while (i < parts.length) {
+          var cmd = parts[i].split(".");
+          parts[i] = (switch (cmd[0]) {
+              case "vnum":
+              charMap[cmd[1]].vnumSecret ? "#.#.#.#" : charMap[cmd[1]].vnum;
+              case "name":
+              charMap[cmd[1]].seen ? "Unknown " + (charMap[cmd[1]].female ? "female" : "male") : charMap[cmd[1]].name;
+              case _: "";
+            });
+          i += 2;
+        }
+        var txt = parts.join("");
+        txt.split("\n").map(m -> Main.ui.write('$$D$m'));
         if (pause) {
           Main.ui.write("$B                    (click)");
           dialogueQueue.push(Pause);
@@ -163,6 +215,12 @@ class Story {
         SEnding.ending = e;
         Main.inst.applyState(Main.inst.getStateById("ending"));
         {nst: st, npo: po, stop: true};
+/*        case Music(id):
+        Music.play(id);
+        {nst: st, npo: po + 1, stop: false};*/
+        case Seen(i):
+        charMap[i].seen = true;
+        {nst: st, npo: po + 1, stop: false};
         case _:
         {nst: st, npo: po + 1, stop: false};
       });
@@ -171,7 +229,9 @@ class Story {
   public function talkTo(c:String, ?st:String):Void {
     var char = charMap[c];
     Main.ui.portrait = char.portrait;
-    Main.ui.write('# ${char.name}');
+    if (st.substr(0, 4) != "call" && st.substr(0, 3) != "bug") {
+      Main.ui.write('# ${char.name}');
+    }
     state = TalkingTo(c, st != null ? st : char.dialogue.start, 0);
   }
   
@@ -251,23 +311,32 @@ class Story {
   }
   
   public function tick():Void {
-    if (dayNum == -1) {
+    if (dayNum == -1){ //} || dayNum == 9) {
       nextDay();
+      dayTime = 590;
     }
+    Main.ui.dialogueMode = false;
     Main.ui.recording = false;
     Main.ui.portraitShow = false;
     Main.ui.tapeAlt.setTo(false);
     switch (state) {
       case None:
-      dayTime++;
+      if (Main.ui.ren.selected == null) {
+        dayTime++;
+      }
       if (dayPos < days[dayNum].events.length) {
         if (runDayEvent(days[dayNum].events[dayPos])) {
           dayPos++;
         }
-      } else if (dayPos >= days[dayNum].length) {
+      }/* else if (dayPos >= days[dayNum].length) {
+        nextDay();
+      }
+      */
+      if (dayTime >= days[dayNum].length) {
         nextDay();
       }
       case TalkingTo(c, st, po):
+      Main.ui.dialogueMode = true;
       Main.ui.recording = true;
       Main.ui.portrait = charMap[c].portrait;
       Main.ui.portraitShow = true;
@@ -291,7 +360,7 @@ class Story {
         if (po >= dia.states[st].length) {
           state = None;
         } else {
-          while (dialogueQueue.length == 0) {
+          while (dialogueQueue.length == 0 && po < dia.states[st].length) {
             var next = runDialogueAction(dia.states[st][po], dia, st, po);
             state = TalkingTo(c, next.nst, next.npo);
             if (checkDialogueExit() || next.stop) {

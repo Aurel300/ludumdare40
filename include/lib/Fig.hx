@@ -12,8 +12,8 @@ import sk.thenet.graph.AStar;
 using sk.thenet.FM;
 
 class Fig {
-  static var b_icons:Vector<Bitmap>;
-  static var b_iconsSmall:Vector<Bitmap>;
+  public static var b_icons:Vector<Bitmap>;
+  public static var b_iconsSmall:Vector<Bitmap>;
   static var b_colours:Array<Colour> = [
        0xAAFFFFAA
       ,0xAAFF44AA
@@ -24,12 +24,12 @@ class Fig {
     return [new AssetBind(["interface"], (am, _) -> {
         var c = am.getBitmap("interface").fluent;
         b_icons = Vector.fromArrayCopy([
-            for (col in b_colours) for (i in 0...4)
+            for (col in b_colours) for (i in 0...6)
               c >> new Cut(160 + i * 16, 0, 16, 16) << new Recolour(col)
           ]);
         b_iconsSmall = Vector.fromArrayCopy([
-            for (col in b_colours) for (i in 0...4)
-              c >> new Cut(224 + i * 8, 0, 8, 8) << new Recolour(col)
+            for (col in b_colours) for (i in 0...6)
+              c >> new Cut(256 + i * 8, 0, 8, 8) << new Recolour(col)
           ]);
         false;
       })];
@@ -46,8 +46,13 @@ class Fig {
   public var col:Colour;
   public var icon:Bitmap;
   public var iconSmall:Bitmap;
+  public var to:String;
+  public var speed:Float;
   
-  public function new(from:String, to:String) {
+  public function new(char:String, from:String, to:String, ?speed:Float) {
+    this.char = char;
+    this.to = to;
+    this.speed = speed != null ? speed : 1.0;
     var refs:Vector<Point2DI> = new Vector(City.CW * City.CH);
     function at(ax:Int, ay:Int):Point2DI {
       var i = ax + ay * City.CW;
@@ -70,26 +75,30 @@ class Fig {
             at(n.x + off[0], n.y + off[1])
           ].filter(p -> p != null)
       );
-    x = a.x;
-    y = a.y;
+    x = a.x + .5;
+    y = a.y + .5;
     vx = 0;
     vy = 0;
     textShow = new Bitween(90);
-    char = "aim";
-    col = b_colours[2];
-    icon = b_icons[8];
-    iconSmall = b_iconsSmall[8];
+    var charC = Main.story.charMap[char];
+    var armed = charC.armed;
+    charC.location = "";
+    col = b_colours[armed ? (char == "ms" ? 2 : 1) : 0];
+    icon = b_icons[armed ? (char == "ms" ? 17 : 7) : 0];
+    iconSmall = b_iconsSmall[armed ? (char == "ms" ? 17 : 7) : 0];
   }
   
   public function tick():Void {
     if (path.length == 0) {
+      SFX.s("MenuThump");
+      Main.story.charMap[char].location = to;
       remove = true;
       return;
     }
     var tx = path[0].x + .5;
     var ty = path[0].y + .5;
-    vx = (vx + (.01).negposF(x > tx, x < tx)).clampF(-.04, .04);
-    vy = (vy + (.01).negposF(y > ty, y < ty)).clampF(-.04, .04);
+    vx = (vx + (.01 * speed).negposF(x > tx, x < tx)).clampF(-.04 * speed, .04 * speed);
+    vy = (vy + (.01 * speed).negposF(y > ty, y < ty)).clampF(-.04 * speed, .04 * speed);
     x += vx;
     y += vy;
     if (x.withinF(path[0].x + .2, path[0].x + .8)

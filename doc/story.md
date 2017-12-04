@@ -31,7 +31,7 @@
 
 ### Places ###
 
- - RB - Rebellion Base - abandoned factory, bad camera coverage?
+ - RB - Rebellion Base - abandoned factory, bad camera coverage? - f3
  - MB - Mercenary Base - ...
  - MRF - Military Research Facility
  - TH - Town Hall
@@ -56,7 +56,7 @@
  - ML2 (Mod Choke) - Mercenary leader 2
    - (if ML1 is killed off, another is used)
  - RL (Arin Robotka) - Rebellion leader
-   - 
+   - 'white craftsman'
  - RLA (Amiga Turner) - Reb. leader's aide
    - 
  (RL/A - RL + RLA)
@@ -66,6 +66,15 @@
    - part of a military research facility
    - provides weapons for the rebellion
  - HAC (Cyberbob) - Hacker
+ - Decoys
+   - Chip Babbage
+   - Nut Router
+   - Bug Cobalt
+   - Boot Pisano
+   - Mortimer Buffers
+   - Infinity Render (F)
+   - Marlyn Nagle (F)
+   - Ada Core (F)
 
 ### People locations ###
 

@@ -96,7 +96,7 @@ class Main extends Application {
         ,Keyboard
         ,Mouse
         ,Console
-        //,ConsoleRemote("localhost", 8001)
+        ,ConsoleRemote("localhost", 8001)
       ]);
     am = assetManager;
     story = Scenario.start();

@@ -26,25 +26,165 @@ class Scenario {
   }
   
   public static function start():Story {
+    function bugStart(ids:Array<String>):DialogueAction {
+      return EvalS("$C[WIRETAP PHONOSTREAM, IDS:\n"
+        + [ for (id in ids) '$$C - %name.${id}%'].join("\n") + "]");
+    }
+    function bugInfo(loc:String) {
+      return DialogueAction.NP(DialogueAction.S("$C[PHONOSTREAM END]"));
+    }
+    function callStart(?from:String, ?to:String):DialogueAction {
+      return EvalS(
+           "$C[PHONE TRANSMISSION INTERCEPT\n"
+          +"$C C-ER: " + (from != null ? '%vnum.$from%' : "#.#.#.#") + "\n"
+          +"$C C-EE: " + (to != null ? '%vnum.$to%' : "#.#.#.#") + "]"
+        );
+    }
+    function callInfo(from:Int, to:Int) {
+      return DialogueAction.NP(DialogueAction.S(
+           "$C[PHONE TRANSMISSION END\n"
+          +'$$C FROM $$DCELL-${from}$$C - TO $$DCELL-${to}$$C]'
+        ));
+    }
     return new Story([
-        /* 1  */  new Day([]) //Action(TalkToState("aim", "intro"))])
-        /* 2  */ ,new Day([])
-        /* 3  */ ,new Day([])
-        /* 4  */ ,new Day([])
-        /* 5  */ ,new Day([])
-        /* 6  */ ,new Day([])
-        /* 7  */ ,new Day([])
-        /* 8  */ ,new Day([])
-        /* 9  */ ,new Day([])
-        /* 10 */ ,new Day([])
-        /* 11 */ ,new Day([])
-        /* 12 */ ,new Day([])
+        /* 1  */  new Day([
+             Music("DroneChill")
+            //,Action(TalkToState("aim", "intro"))
+            ,At(400, CharMove("d3", "d3p", "gs4"))
+            ,At(1500, CharMove("d3", "gs4", "d3p"))
+            ,At(1800, CharMove("d8", "d8p", "gs2"))
+            ,At(3200, CharMove("d8", "gs2", "gs3"))
+            ,At(3900, CharMove("d8", "gs3", "d8p"))
+          ], 4000)
+        /* 2  */ ,new Day([
+             At(100, CharMove("d1", "d1p", "c3"))
+            ,At(300, CharMove("d2", "d2p", "c3"))
+            ,Conditional(
+                 All([Location("d1", "c3"), Location("d2", "c3")])
+                ,Meeting("c3", 300, 1800, TalkToState("d1", "bug-mm0")) // MM0
+              )
+            ,At(1800, Call("cell3", "d3", "d4", "call-mms1"))
+            ,At(2300, CharMove("d1", "c3", "d1p"))
+            ,At(2320, CharMove("d2", "c3", "c2"))
+            ,At(3200, CharMove("d2", "c2", "d2p"))
+          ], 3600)
+        /* 3  */ ,new Day([
+             At(800, Call("cell4", "d5", "d6", "call-mms2"))
+            ,At(1800, Call("cell1", "aim", "rl", "call-rmms"))
+            ,At(2300, CharMove("aim", "th", "c1"))
+            ,At(2200, Call("cell2", "d8", "d1", "call-mms3"))
+            ,At(2900, CharMove("aim", "c1", "th"))
+          ], 3600)
+        /* 4  */ ,new Day([
+             At(400, CharArmed("ml2", true))
+            ,At(500, CharMove("ml2", "gs1", "d2p"))
+            ,At(900, CharMove("d3", "d3p", "d5p"))
+            ,At(1000, CharMove("d4", "d4p", "d5p"))
+            ,At(1900, CharMove("ml2", "d2p", "c2")) // MCM0
+            ,At(2500, CharMove("ml2", "c2", "gs1")) // MM1
+            ,At(3100, CharMove("d3", "d5p", "d4p"))
+            ,At(3140, CharMove("d4", "d5p", "d4p"))
+          ], 5000)
+        /* 5  */ ,new Day([], 5000)
+        /* 6  */ ,new Day([
+             At(1100, CharMove("rl", "f3", "c1"))
+            ,At(2400, CharMove("aim", "th", "c1")) // RMM
+            ,Conditional(
+                 All([Location("rl", "c1"), Location("aim", "c1")])
+                ,Meeting("c1", 2400, 3800, TalkToState("aim", "bug-rmm")) // RMM
+              )
+            ,At(3800, CharMove("rl", "c1", "gs1"))
+            ,At(4000, CharMove("aim", "c1", "th"))
+          ], 5000)
+        /* 7  */ ,new Day([
+            At(900, Conditional(Alive("ml2"),
+              Call("cell3", "rl", "ml2", "call-mcms2"))) // MCMS2
+          ], 5000)
+        /* 8  */ ,new Day([
+            At(900, Conditional(Not(Alive("ml2")),
+              Call("cell3", "rl", "ml1", "call-mcms1"))) // MCMS1
+          ], 5000)
+        /* 9  */ ,new Day([
+            At(2800, CharMove("rl", "f3", "mrf")) // MCM2
+          ], 5000)
+        /* 10 */ ,new Day([
+            At(2400, CharMove("rl", "f3", "mrf")) // MCM1
+          ], 5000)
+        /* 11 */ ,new Day([
+             CharArmed("ml1", true)
+            ,CharArmed("ms", true)
+            ,At(600, CharMove("ml1", "mrf", "mrts", 2.0))
+            ,At(700, CharMove("ms", "mrf", "mrts", 2.0))
+            ,At(800, CharMove("ms", "mrf", "mrts", 2.0))
+            ,At(840, CharMove("ms", "mrf", "mrts", 2.0))
+            ,At(860, CharMove("ms", "mrf", "mrts", 2.0))
+            ,At(880, CharMove("ms", "mrf", "mrts", 2.0))
+            ,At(890, CharMove("ms", "mrf", "mrts", 2.0))
+            ,At(900, CharMove("ms", "mrf", "mrts", 2.0))
+            ,At(900, CharMove("ms", "mrf", "mrts", 2.0))
+            ,At(910, CharMove("ms", "mrf", "mrts", 2.0))
+            ,At(920, CharMove("ms", "mrf", "mrts", 2.0))
+            ,At(940, CharMove("ms", "mrf", "mrts", 2.0))
+            ,At(980, CharMove("ms", "mrf", "mrts", 2.0))
+            ,At(1050, CharMove("ms", "mrf", "mrts", 2.0))
+            // MWT1 / MWT2
+          ], 5000)
+        /* 12 */ ,new Day([
+            // COUP
+             At(400, CharMove("ms", "mrts", "th", 2.0))
+            ,At(400, CharMove("ms", "mrts", "th", 2.0))
+            ,At(400, CharMove("ms", "mrts", "th", 2.0))
+            ,At(400, CharMove("ms", "mrts", "th", 2.0))
+            ,At(500, CharMove("ms", "mrts", "th", 2.0))
+            ,At(500, CharMove("ms", "mrts", "th", 2.0))
+            ,At(500, CharMove("ms", "mrts", "th", 2.0))
+            ,At(500, CharMove("ms", "mrts", "th", 2.0))
+            ,At(600, CharMove("ms", "mrts", "th", 2.0))
+            ,At(600, CharMove("ms", "mrts", "th", 2.0))
+            ,At(600, CharMove("ms", "mrts", "th", 2.0))
+            ,At(600, CharMove("ms", "mrts", "th", 2.0))
+            ,At(700, CharMove("ms", "mrts", "th", 2.0))
+            ,At(700, CharMove("ms", "mrts", "th", 2.0))
+            ,At(700, CharMove("ml1", "mrts", "th", 2.0))
+            ,At(700, CharMove("rl", "mrts", "th", 2.0))
+          ], 5000)
       ], [], [
         new Char("aim", "Grep Shamir", 0, [
             "idle" => 0
           ], new Dialogue("greet", [
-            "intro" => [
-                 S("Hello, AICO.\n"
+            // calls
+            "call-rmms" => [
+                 callStart(null, null)
+                ,S("Hello, is this the\n"
+                  +"'white craftsman'?")
+                ,SP("Could be, could be ...")
+                ,S("I have something that might\n"
+                  +"interest you greatly.")
+                ,NP(SP("Oh yeah? I am not buying anyth--"))
+                ,S("Oh no, quite the opposite,\n"
+                  +"I assure you!")
+                ,SP("Are we talking charity here?")
+                ,S("A lot of it. It is time your\n"
+                  +"craft was pushed to its goal.")
+                ,S("People are becoming restless.")
+                ,SP("Hm...\n"
+                  +"Where shall we discuss this?")
+                ,S("Let's get some fresh fish,\n"
+                  +"right under their noses.")
+                ,S("Friday sounds good.")
+                ,SP("Understood. Take care,\n"
+                  +"... fellow craftsman.")
+                ,callInfo(1, 3)
+              ]
+            // bugs
+            ,"bug-rmm" => [
+                 bugStart(["aim", "rl"])
+                ,bugInfo("c3")
+              ]
+            // ...
+            ,"intro" => [
+                 Seen("aim")
+                ,S("Hello, AICO.\n"
                   +"Welcome on-line!")
                 ,NP(S("Can you see me?\n"
                   +"Do you understand me?"))
@@ -143,6 +283,67 @@ class Scenario {
             "greet" => [
                  S("Well hello there.")
               ]
+          ]))
+        ,new Char("rl", "Arin Robotka", 0, ["idle" => 0], new Dialogue("greet", [
+            "greet" => [S("?")]
+          ]), false, true)
+        ,new Char("ml1", "Clip Mech", 0, ["idle" => 0], new Dialogue("greet", [
+            "greet" => [S("?")]
+          ]), false, true)
+        ,new Char("ml2", "Mod Choke", 0, ["idle" => 0], new Dialogue("greet", [
+            "greet" => [S("?")]
+          ]), false, true)
+        
+        ,new Char("d1", "Chip Babbage", 0, ["idle" => 0], new Dialogue("greet", [
+             "greet" => []
+            ,"bug-mm0" => [
+                 bugStart(["d1", "d2"])
+                ,S("Lovely weather we're having.")
+                ,SP("Did you bring the money?")
+                ,S("Relax, there is plenty of time!")
+                ,SP("Did you forget?!")
+                ,S("Money, money, money.\nIt's always about the money\nwith you.")
+                ,SP("...")
+                ,S("... Okay, maybe I forgot.")
+                ,SP("I knew it!")
+                ,S("Wait, don't go!")
+                ,bugInfo("c3")
+              ]
+          ]))
+        ,new Char("d2", "Nut Router", 0, ["idle" => 0], new Dialogue("greet", [
+            "greet" => []
+          ]))
+        ,new Char("d3", "Bug Cobalt", 0, ["idle" => 0], new Dialogue("greet", [
+             "greet" => []
+            ,"call-mms1" => [
+                 callStart("d3", "d4")
+                ,S("Hey there, Boot.")
+                ,SP("Bug, what's up?")
+                ,S("Oh, not much. I got a week off,\nso we could get coffee\nor something.")
+                ,SP("Right, let me think...")
+                ,SP("How's Wednesday sound?")
+                ,S("Yep, that's great. Listen, my\nphone is dying, so see you at\nNeo-coffee!")
+                ,SP("Sure, talk to you later.")
+                ,callInfo(3, 4)
+              ]
+          ]))
+        ,new Char("d4", "Boot Pisano", 0, ["idle" => 0], new Dialogue("greet", [
+            "greet" => []
+          ]))
+        ,new Char("d5", "Mortimer Buffers", 0, ["idle" => 0], new Dialogue("greet", [
+            "greet" => []
+          ]))
+        ,new Char("d6", "Infinity Render", 0, ["idle" => 0], new Dialogue("greet", [
+            "greet" => []
+          ]), true)
+        ,new Char("d7", "Marlyn Nagle", 0, ["idle" => 0], new Dialogue("greet", [
+            "greet" => []
+          ]), true)
+        ,new Char("d8", "Ada Core", 0, ["idle" => 0], new Dialogue("greet", [
+            "greet" => []
+          ]), true)
+        ,new Char("ms", "Militant", 0, ["idle" => 0], new Dialogue("greet", [
+            "greet" => []
           ]))
       ]);
   }

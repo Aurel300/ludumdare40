@@ -15,6 +15,8 @@ enum DialogueAction {
   Pause; // wait for click through
   Sound(snd:String); // non interruptible
   Ending(e:String);
+  EvalS(txt:String);
+  Seen(i:String);
   // Show
   // ShowBuilding
   // FreeAction // when interrogating / asking?

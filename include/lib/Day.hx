@@ -16,9 +16,9 @@ class Day {
   public var events:Array<DayEvent>;
   public var actions:Array<Action>;
   
-  public function new(events:Array<DayEvent>) {
+  public function new(events:Array<DayEvent>, length:Int) {
     this.events = events;
-    length = 5;
+    this.length = length;
     actions = [];
   }
   

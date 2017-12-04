@@ -62,7 +62,7 @@ class UI {
             }
           ]);
         b_tapeBG = f >> new Cut(411, 0, 140, 119);
-        b_tapeNums = f >> new Cut(520, 0, 7, 143);
+        b_tapeNums = f >> new Cut(551, 0, 7, 143);
         b_overlay = f >> new Cut(158, 154, 400, 300);
         b_zoom = Vector.fromArrayCopy([
             for (x in 0...4) for (y in 0...2) f >> new Cut(232 + 16 * x, 49 + 26 * y, 16, 26)
@@ -121,6 +121,7 @@ class UI {
   public var portrait:Int = 0;
   public var portraitShow:Bool = false;
   public var cursor:Cursor = Normal;
+  public var dialogueMode:Bool = false;
   
   public var writeBuffer:Bitmap;
   public var writeQueue:Array<String> = [];
@@ -174,6 +175,9 @@ class UI {
         }
       }
     }
+    if (dialogueMode) {
+      return None;
+    }
     if (mx.withinI(33, 33 + 333) && my.withinI(0, 207)) {
       if (mx < 66) {
         return TurnLeft;
@@ -211,7 +215,7 @@ class UI {
     }
     ren.crtEnable = !overlayCrt.isOn;
     ren.crt = (1 - Timing.quadOut.getF(overlayCrt.valueF)) * 1.2;
-    ren.render(to);
+    ren.render(to, dialogueMode);
     if (!overlay.isOn) {
       to.fillRect(0, 300 + ovY, 400, 300 - ovY, Pal.colours[0]);
     }
@@ -303,8 +307,9 @@ class UI {
       }
     }
     
-    tapeSpeed = Platform.mouse.x / 250.0;
+    //tapeSpeed = Platform.mouse.x / 250.0;
     tapePh += tapeSpeed;
+    if (tapeSpeed > 0) tapeSpeed *= .94;
     if (tapePh < 0) tapePh += TAPE_FRAMES;
     if (tapePh >= TAPE_FRAMES) tapePh -= TAPE_FRAMES;
     
@@ -326,14 +331,15 @@ class UI {
     
     if (writeQueue.length == 0) {
       writePh = 0;
-    } else if (writePh == 0 && trWheel == 0) {
+    } else if (writePh % 2 == 0 && trWheel == 0) {
       if (Debug.FAST_WRITING) {
         writePos = 0;
         var rs = f_fonts[0].render(writeBuffer, 2, 70, writeQueue.shift(), f_fonts);
         trWheel = rs.y - 70 + 2;
       } else {
-        if (writeQueue[0].charAt(writePos) != " ") {
+        if (writeQueue[0].charAt(writePos) != " " && writePh == 0) {
           SFX.s('Typewriter${writeSound + 1}');
+          tapeSpeed += .1;
           writeSound += 1 + FM.prng.nextMod(3);
           writeSound %= 4;
         }

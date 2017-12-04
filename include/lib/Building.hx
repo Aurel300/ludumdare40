@@ -121,8 +121,10 @@ class Building {
   public var prngen:Generator;
   public var name:String;
   public var dis:String;
+  public var desc:String;
   public var prefix:String;
   public var lShape:Bool;
+  public var point:Point2DF;
   
   public function new() {
     seed = FM.prng.next();
@@ -131,7 +133,14 @@ class Building {
   }
   
   public function createPrefix():Void {
+    point = new Point2DF(x, y);
     prefix = name + "\n" + dis + " district\n\n";
+    if (desc != null && desc.substr(0, 4) == "CELL") {
+      var names = [ for (id in desc.split(" ").slice(1)) Main.city.idMap[id].name ];
+      names.sort((a, b) -> a < b ? -1 : 1);
+      prefix += "Cell tower for:\n" + names.map(n -> '$$B> $n$$A').join("\n");
+    }
+    prefix += "\n\n";
   }
   
   public function getPoint():Point2DI {
