@@ -1,6 +1,8 @@
 package lib;
 
 enum TapeRecord {
-  Event(event:String);
-  Dialogue(actions:Array<Action>);
+  LabelStart(m:String);
+  Text(str:String);
+  LabelEnd(m:String);
+  Sound(snd:String);
 }

@@ -102,9 +102,11 @@ class CRTRen {
     si = Math.sin(angle);
     if (xarPh == 0) {
       xar = FM.prng.nextMod(w);
+    } else {
+      xar++;
     }
-    xarPh++;
-    xarPh %= 4;
+    xarPh += FM.prng.nextMod(2);
+    xarPh %= 16;
     scale = (scale * 9 + scaleT) / 10;
     pitch = (pitch * 9 + pitchT) / 10;
     angle = (angle * 9 + angleT) / 10;

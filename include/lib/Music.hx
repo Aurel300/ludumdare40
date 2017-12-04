@@ -20,12 +20,18 @@ class Music {
       ,"EndingTriumph"
       ,"HackerConversation"
       ,"IntenseExo"
+      ,"Intro"
+      ,"IntroRetarded"
+      ,"IntroRetarded2"
+      ,"Investigation"
+      ,"InvestigationGotEm"
+      ,"InvestigationOnToSomething"
       ,"JingelLong"
       ,"JingelRingShort"
+      ,"Mem"
       ,"NotComfySong"
       ,"NotSoComfySong"
-      ,"Unused1"
-      ,"Unused2"
+      ,"SynthWave1"
     ];
   public static var playing:Array<String> = [];
   public static var volumes:Array<Bitween> = [];

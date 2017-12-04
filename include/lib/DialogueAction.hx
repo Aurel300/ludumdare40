@@ -12,6 +12,7 @@ enum DialogueAction {
   Label(n:String);
   Conditional(c:StoryCondition, a:DialogueAction);
   Wait(f:Int);
+  Music(id:String);
   Pause; // wait for click through
   Sound(snd:String); // non interruptible
   Ending(e:String);

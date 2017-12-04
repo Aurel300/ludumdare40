@@ -9,7 +9,6 @@ class SGame extends JamState {
   var ui:UI;
   
   override public function to() {
-    Music.play("EasterEgg");
     ren = new CityRen(33, 0, 334, 230);
     ui = new UI(ren);
   }

@@ -3,6 +3,7 @@ package lib;
 import haxe.ds.Vector;
 import sk.thenet.anim.*;
 import sk.thenet.app.asset.Bind as AssetBind;
+import sk.thenet.audio.IChannel;
 import sk.thenet.bmp.*;
 import sk.thenet.bmp.manip.*;
 import sk.thenet.plat.Platform;
@@ -23,10 +24,15 @@ class UI {
         var f = am.getBitmap("interface").fluent;
         b_crt = f >> new Cut(0, 0, 123, 102);
         b_tapeControl
-          = Vector.fromArrayCopy([ for (i in 0...2) f >> new Cut(i * 137, 102, 137, 26) ]);
-        b_tapeControlDown
-          = Vector.fromArrayCopy([ for (i in 0...5) f >> new Cut(1 + 27 * i, 128, 27, 26) ]
-          .concat([ for (i in 0...4) f >> new Cut(138 + 27 * i, 128, i == 3 ? 54 : 27, 26) ]));
+          = Vector.fromArrayCopy([ for (i in 0...4) f >> new Cut((i % 3) * 137, 102, 137, 26) ]);
+        b_tapeControl[3].blitAlpha(f >> new Cut(177, 50, 27, 26), 1 + 27 * 4, 0);
+        b_tapeControl[3].blitAlpha(f >> new Cut(205, 50, 27, 26), 1 + 27 * 1, 0);
+        b_tapeControlDown = new Vector(4 * 5);
+        var vi = 0;
+        for (i in 0...3) for (j in 0...5) b_tapeControlDown[vi++] = f >> new Cut(i * 137 + 1 + 27 * j, 128, 27, 26);
+        for (j in 0...5) b_tapeControlDown[15 + j] = b_tapeControlDown[j].fluent >> new Copy();
+        b_tapeControlDown[15 + 4].blitAlpha(f >> new Cut(177, 76, 27, 23), 0, 0);
+        b_tapeControlDown[15 + 1].blitAlpha(f >> new Cut(205, 76, 27, 23), 0, 0);
         b_transcript = f >> new Cut(0, 154, 137, 71);
         b_transcriptWheel
           = Vector.fromArrayCopy([ for (i in 0...3) f >> new Cut(i * 5, 225, 5, 17) ]
@@ -107,6 +113,8 @@ class UI {
   public var crtDisplay:Bitween;
   public var tapeControl:Bitween;
   public var tapeAlt:Bitween;
+  public var tapeAltMode:TapeMode;
+  public var tapeAltModeT:TapeMode;
   public var transcript:Bitween;
   public var trWheel:Int;
   public var hover:Int;
@@ -122,6 +130,12 @@ class UI {
   public var portraitShow:Bool = false;
   public var cursor:Cursor = Normal;
   public var dialogueMode:Bool = false;
+  public var renView:UIView = City;
+  public var wasView:UIView = City;
+  public var tapeChannel:IChannel;  
+  public var lastTrack:Array<TapeRecord> = [];
+  public var playbackOn:Bool = false;
+  public var playbackPos:Int = -1;
   
   public var writeBuffer:Bitmap;
   public var writeQueue:Array<String> = [];
@@ -137,21 +151,30 @@ class UI {
     crtDisplay = new Bitween(20);
     tapeControl = new Bitween(55);
     tapeAlt = new Bitween(40);
+    tapeAltMode = Normal;
+    tapeAltModeT = Normal;
     transcript = new Bitween(43);
-    overlay.setTo(true);
-    overlayCrt.setTo(true);
-    crt.setTo(true);
-    tapeControl.setTo(true);
-    transcript.setTo(true);
+    enter();
     trWheel = 0;
     hover = 0;
     tapePh = 0;
     tapeSpeed = 0;
     tapeDigits = [0, 0, 0, 0];
     tapeDigitsT = [0, 0, 0, 0];
-    setTapeNum(1337);
     writeBuffer = Platform.createBitmap(129, 70 + 16, 0);
     this.ren = ren;
+    tapeChannel = SFX.s("TapeRewind", Forever);
+    tapeChannel.setVolume(0);
+    tapeChannel.setPan(.3);
+  }
+  
+  public function enter():Void {
+    overlay.setTo(true);
+    overlayCrt.setTo(true);
+    crt.setTo(true);
+    tapeAlt.setTo(true);
+    tapeControl.setTo(true);
+    transcript.setTo(true);
   }
   
   public function setTapeNum(num:Int):Void {
@@ -163,15 +186,19 @@ class UI {
   }
   
   public function write(msg:String):Void {
-    msg.split("\n").map(writeQueue.push);
+    var lines = msg.split("\n");
+    if (recording) {
+      lines.map(l -> lastTrack.push(Text(l)));
+    }
+    lines.map(writeQueue.push);
   }
   
   function at(mx:Int, my:Int):HeldButton {
-    if (tapeAlt.isOn || tapeAlt.isOff) {
-      for (i in 0...(tapeAlt.isOn ? 5 : 4)) {
+    if (tapeAlt.isOn) {
+      for (i in 0...5) {
         if (mx.withinI(124 + i * 27, 124 + i * 27 + 26)
             && my.withinI(Main.H - 92, Main.H - 92 + 21)) {
-          return tapeAlt.isOn ? TapeControlAlt(i.minI(3)) : TapeControl(i);
+          return TapeControl(i);
         }
       }
     }
@@ -205,8 +232,18 @@ class UI {
   public function render(to:Bitmap):Void {
     if (wasRecording != recording) {
       SFX.s(wasRecording ? "CasetteStop" : "CasettePlay");
+      if (!recording) {
+        tapeAltModeT = Normal;
+        Main.story.tape.push(lastTrack);
+        setTapeNum(Main.story.tape.length);
+        lastTrack = [];
+      }
     }
     wasRecording = recording;
+    if (wasView != renView) {
+      SFX.s("CasetteStop");
+    }
+    wasView = renView;
     
     // overlay and city
     var ovY = -300 + Timing.quintOut.getI(overlay.valueF, 300);
@@ -270,24 +307,57 @@ class UI {
     to.blitAlpha(b_tapeBG, 260, tbgY);
     
     // tape control
-    var tcY = Main.H - Timing.quintOut.getI(tapeControl.valueF, 92);
-    var tcY1 = tcY + Timing.quadInOut.getI(tapeAlt.valueF, 40);
-    var tcY2 = tcY + 40 - Timing.quadInOut.getI(tapeAlt.valueF, 40);
-    if (!tapeAlt.isOn) {
-      to.blitAlpha(b_tapeControl[0], 123, tcY1);
-      if (recording) {
-        to.blitAlpha(b_tapeControlDown[4], 124 + 4 * 27, tcY1);
-      }
-    }
+    var tcY = Main.H - Timing.quintOut.getI(tapeControl.valueF, 52) - Timing.quadInOut.getI(tapeAlt.valueF, 40);
     if (!tapeAlt.isOff) {
-      to.blitAlpha(b_tapeControl[1], 123, tcY2);
+      to.blitAlpha(b_tapeControl[switch (tapeAltMode) {
+          case Normal: 2;
+          case Record: 0;
+          case Listen: 3;
+          case Choice: 1;
+        }], 123, tcY);
+      switch (tapeAltMode) {
+        case Normal:
+        switch (renView) {
+          case Phonebook: to.blitAlpha(b_tapeControlDown[10], 124 + 0 * 27, tcY);
+          case City: to.blitAlpha(b_tapeControlDown[11], 124 + 1 * 27, tcY);
+          case Brain: to.blitAlpha(b_tapeControlDown[13], 124 + 3 * 27, tcY);
+          case Settings: to.blitAlpha(b_tapeControlDown[14], 124 + 4 * 27, tcY);
+        }
+        case Record:
+        if (recording) {
+          to.blitAlpha(b_tapeControlDown[4], 124 + 4 * 27, tcY);
+        }
+        case Listen:
+        if (playbackOn) {
+          to.blitAlpha(b_tapeControlDown[2], 124 + 2 * 27, tcY);
+        }
+        case _:
+      }
     }
     switch (held) {
       case TapeControl(i):
-      to.blitAlpha(b_tapeControlDown[i], 124 + i * 27, tcY1);
-      case TapeControlAlt(i):
-      to.blitAlpha(b_tapeControlDown[5 + i], 124 + i * 27, tcY2);
+      if (tapeAltMode == Choice) {
+        if (i > 3) i = 3;
+        if (i == 3) {
+          to.blitAlpha(b_tapeControlDown[9], 124 + 4 * 27, tcY);
+        }
+      }
+      to.blitAlpha(b_tapeControlDown[(switch (tapeAltMode) {
+          case Normal: 2;
+          case Record: 0;
+          case Listen: 3;
+          case Choice: 1;
+        }) * 5 + i], 124 + i * 27, tcY);
       case _:
+    }
+    
+    if (tapeAltMode != tapeAltModeT) {
+      tapeAlt.setTo(false);
+      if (tapeAlt.isOff) {
+        tapeAltMode = tapeAltModeT;
+      }
+    } else {
+      tapeAlt.setTo(true);
     }
     
     // transcript
@@ -307,9 +377,9 @@ class UI {
       }
     }
     
-    //tapeSpeed = Platform.mouse.x / 250.0;
     tapePh += tapeSpeed;
-    if (tapeSpeed > 0) tapeSpeed *= .94;
+    tapeChannel.setVolume((tapeSpeed.absF() / 3).clampF(0, 1) * .6);
+    tapeSpeed *= .94;
     if (tapePh < 0) tapePh += TAPE_FRAMES;
     if (tapePh >= TAPE_FRAMES) tapePh -= TAPE_FRAMES;
     
@@ -328,6 +398,25 @@ class UI {
     hover++;
     hover %= 24;
     cursor = Normal;
+    
+    if (tapeAltMode == Listen && playbackOn
+        && playbackPos.withinI(0, Main.story.tape[tapeNum - 1].length - 1)) {
+      switch (Main.story.tape[tapeNum - 1][playbackPos]) {
+        case Text(msg) | LabelStart(msg) | LabelEnd(msg):
+        if (writeQueue.length == 0) {
+          writeQueue.push(msg);
+          playbackPos++;
+          if (playbackPos >= Main.story.tape[tapeNum - 1].length) {
+            tapeSpeed -= Main.story.tape[tapeNum - 1].length * .05;
+            playbackPos = 0;
+            playbackOn = false;
+            SFX.s("CasetteStop");
+          }
+          tapeSpeed += .1;
+        }
+        case _:
+      }
+    }
     
     if (writeQueue.length == 0) {
       writePh = 0;
@@ -382,7 +471,7 @@ class UI {
   public function mouseDown(mx:Int, my:Int):Bool {
     held = at(mx, my);
     switch (held) {
-      case TapeControl(_) | TapeControlAlt(_) | ZoomIn | ZoomOut | PitchDown | PitchUp:
+      case TapeControl(_) | ZoomIn | ZoomOut | PitchDown | PitchUp:
       Main.am.getSound("CasettePlay").play();
       //setTapeNum((tapeNum + FM.prng.nextMod(5)) % 10000);
       case _:
@@ -397,8 +486,45 @@ class UI {
       case _: Main.am.getSound("CasetteStop").play();
     }
     switch (held) {
-      case TapeControl(_):
-      case TapeControlAlt(i): Main.story.uiSelect(i);
+      case TapeControl(i):
+      switch (tapeAltMode) {
+        case Normal:
+        switch (i) {
+          case 0: wasView = renView = Phonebook;
+          case 1: wasView = renView = City;
+          case 2: tapeAltModeT = Listen;
+          case 3: wasView = renView = Brain;
+          case 4: wasView = renView = Settings;
+        }
+        case Record: 
+        case Listen:
+        switch (i) {
+          case 0:
+          if (tapeNum > 1) {
+            setTapeNum(tapeNum - 1);
+            tapeSpeed -= Main.story.tape[tapeNum].length * .05;
+            playbackOn = false;
+            playbackPos = -1;
+          }
+          case 2:
+          playbackOn = !playbackOn;
+          if (playbackOn && playbackPos < 0) {
+            playbackPos = 0;
+          }
+          case 3:
+          if (tapeNum < Main.story.tape.length) {
+            tapeSpeed += Main.story.tape[tapeNum].length * .05;
+            setTapeNum(tapeNum + 1);
+            playbackOn = false;
+            playbackPos = -1;
+          }
+          case 1 | 4: 
+          tapeAltModeT = Normal;
+          playbackOn = false;
+          playbackPos = -1;
+        }
+        case Choice: Main.story.uiSelect(i);
+      }
       case ZoomIn: SFX.s("ZoomIn"); ren.zoomIn();
       case ZoomOut: SFX.s("ZoomOut"); ren.zoomOut();
       case PitchUp: SFX.s("ZoomIn"); ren.pitchUp();
@@ -419,7 +545,6 @@ class UI {
 enum HeldButton {
   None;
   TapeControl(i:Int);
-  TapeControlAlt(i:Int);
   ZoomIn;
   ZoomOut;
   PitchUp;

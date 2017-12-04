@@ -19,46 +19,41 @@ You take control of an AI which oversees the operation of a city via console. Yo
 
  - priority
    - core gameplay
-     . record interactions
      . dialogue system, triggers and conditions
-     - "people" walking around
+     . "people" walking around
        - random names
      - actions
        - (read about)
-       - look into logs (free)
-         - logs
-       - watch / listen to tapes
-       - skip rest of day
-       . talk to ...
-       - place bug on building
-       - place sentinel on building
+       - **talk to / call**
+         - phonebook
+         - known / unknown
+         - faces
+       - place sentinel on building (and autocapture)
        - (search the Net for ...)
+ - update tutorial
+
 
  - polish
-   - *CRT effect*
-   - tape effect
    - dialogue on/off - manip with scale to stretch / squeeze image
  - story
-   - *timeline*
    - people bios
-   - dialogue lines
-   - *buildings*
-   - *crucial events*
+   . dialogue lines
  - UI
-   - *city navigation*
-   - dialogues
-   - *tape recordings / transcript*
  - ...
 
 ## Sound / music list ##
 
  - music
-   - [ ] boot-up sounds
-   - [ ] boot-up jingle - < 5 sec jingle when the console boots up, something vaguely similar to XP login sound (+ more retro)
-   - [ ] city navigation sounds
-     - [ ] changing zoom level - mechanical lens changing
-     - [ ] moving around / rotating, selection - bleep bloop sounds
-   - [ ] non-console interface
-     - [ ] button presses - like pressing "Play" on an old tape recorder
-     - [ ] tape sound / loop
-     - [ ] tape rewinds / fast forwards - artefacts + code generated?
+   - [x] boot-up sounds
+   - [x] boot-up jingle - < 5 sec jingle when the console boots up, something vaguely similar to XP login sound (+ more retro)
+   - [x] city navigation sounds
+     - [x] changing zoom level - mechanical lens changing
+     - [x] moving around / rotating, selection - bleep bloop sounds
+   - [x] non-console interface
+     - [x] button presses - like pressing "Play" on an old tape recorder
+     - [x] tape sound / loop
+     - [x] tape rewinds / fast forwards - artefacts + code generated?
+   - ...
+ - music fixes
+   - [ ] hackerconvo
+   - [ ] dronechill

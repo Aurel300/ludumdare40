@@ -46,7 +46,7 @@ class CityRen extends CRTRen {
       active = b;
       activePh = 0;
       activeTimer = t;
-      activeChannel = SFX.s("RingtoneShort", Loop(3));
+      activeChannel = SFX.s("RingtoneShort", Loop(6));
       activeAction = a;
     }
   }
@@ -83,15 +83,25 @@ class CityRen extends CRTRen {
     if (selected != null) {
       if ((x - this.x).withinF(220, 235)) {
         if ((y - this.y).withinF(18, 33)) {
-          bug = (bug == selected ? null : selected);
-          if (bug != null) {
-            SFX.s("Click");
+          if (selected.dis == "Military" && selected.id != "mrf") {
+            SFX.s("ClickError");
+            Main.ui.write("Permission denied!\n$B  Military grounds not\n$B  under AICO supervision.");
+          } else {
+            bug = (bug == selected ? null : selected);
+            if (bug != null) {
+              SFX.s("Click");
+            }
           }
           return;
         } else if ((y - this.y).withinF(38, 53)) {
-          sentinel = (sentinel == selected ? null : selected);
-          if (sentinel != null) {
-            SFX.s("Shutdown1");
+          if (selected.dis == "Military" && selected.id != "mrf") {
+            SFX.s("ClickError");
+            Main.ui.write("Permission denied!\n$B  Military grounds not\n$B  under AICO supervision.");
+          } else {
+            sentinel = (sentinel == selected ? null : selected);
+            if (sentinel != null) {
+              SFX.s("Shutdown1");
+            }
           }
           return;
         }
@@ -249,6 +259,7 @@ class CityRen extends CRTRen {
     }
     selectedText.tick();
     if (activeTimer > 0) {
+      activeChannel.setVolume(activeTimer / 1080);
       activeTimer--;
       var left = pointerCalc(-50, 0).distance(active.point);
       var right = pointerCalc(50, 0).distance(active.point);

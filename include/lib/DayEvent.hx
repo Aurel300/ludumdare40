@@ -2,7 +2,6 @@ package lib;
 
 enum DayEvent {
   Action(a:Action);
-  Music(id:String);
   Call(fromCell:String, from:String, to:String, st:String);
   Meeting(id:String, t1:Int, t2:Int, a:Action);
   CharReachable(id:String, r:Bool);
@@ -13,4 +12,7 @@ enum DayEvent {
   CharLocation(id:String, loc:String);
   Conditional(c:StoryCondition, e:DayEvent);
   At(t:Int, e:DayEvent);
+  Music(id:String);
+  Sound(id:String);
+  Lock(l:Bool);
 }

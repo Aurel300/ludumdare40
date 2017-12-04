@@ -13,9 +13,10 @@ class Story {
   public var dayNum:Int;
   public var dayPos:Int;
   public var dayTime:Int;
-  public var tape:Array<TapeRecord>;
+  public var tape:Array<Array<TapeRecord>>;
   public var state:StoryState;
   public var dialogueQueue:Array<DialogueAction> = [];
+  public var lock:Bool = false;
   
   public function new(
     days:Array<Day>, flags:Array<StoryFlag>, chars:Array<Char>
@@ -51,12 +52,16 @@ class Story {
                 nextDay();
                 None;
                 case ("tt" | "talkingto") if (args.length == 4):
-                var pos = (if (args[3].charCodeAt(0).withinI('0'.code, '9'.code)) {
-                    Std.parseInt(args[3]);
-                  } else {
-                    resolveLabel(charMap[args[1]].dialogue, args[2], args[3]);
-                  });
-                TalkingTo(args[1], args[2], pos);
+                if (!charMap.exists(args[1]) || !charMap[args[1]].dialogue.states.exists(args[2])) {
+                  state;
+                } else {
+                  var pos = (if (args[3].charCodeAt(0).withinI('0'.code, '9'.code)) {
+                      Std.parseInt(args[3]);
+                    } else {
+                      resolveLabel(charMap[args[1]].dialogue, args[2], args[3]);
+                    });
+                  TalkingTo(args[1], args[2], pos);
+                }
                 case _: state;
               });
           }
@@ -103,14 +108,16 @@ class Story {
     return (switch (d) {
         case Action(a): runAction(a); true;
         case Call(cell, from, to, st):
-        Main.ui.ren.activate(Main.city.idMap[cell], 540, TalkToState(from, st));
+        Main.ui.ren.activate(Main.city.idMap[cell], 1080, TalkToState(from, st));
         true;
         case Meeting(id, start, end, a):
         if (dayTime.withinI(start, end) && Main.ui.ren.bug != null
-            && Main.ui.ren.bug.id == id) {
-          Main.ui.ren.activate(Main.ui.ren.bug, 540, a);
+            && Main.ui.ren.bug.id == id && Main.ui.ren.selected == null) {
+          Main.ui.ren.activate(Main.ui.ren.bug, 1080, a);
+          true;
+        } else {
+          dayTime >= end;
         }
-        true;
         case CharReachable(id, r): charMap[id].reachable = r; true;
         case CharInCity(id, r): charMap[id].inCity = r; true;
         case CharAlive(id, r): charMap[id].alive = r; true;
@@ -120,9 +127,10 @@ class Story {
         true;
         case CharLocation(id, to): charMap[id].location = to; true;
         case Conditional(c, e): (evalCond(c) && runDayEvent(e));
-        case At(t, e): (dayTime >= t && runDayEvent(e));
+        case At(t, e): if (dayTime >= t) runDayEvent(e); dayTime >= t;
         case Music(id): Music.play(id); true;
-        case _: false;
+        case Sound(id): SFX.s(id); true;
+        case Lock(l): lock = l; true;
       });
   }
   
@@ -175,7 +183,7 @@ class Story {
               case "vnum":
               charMap[cmd[1]].vnumSecret ? "#.#.#.#" : charMap[cmd[1]].vnum;
               case "name":
-              charMap[cmd[1]].seen ? "Unknown " + (charMap[cmd[1]].female ? "female" : "male") : charMap[cmd[1]].name;
+              !charMap[cmd[1]].seen ? "Unknown " + (charMap[cmd[1]].female ? "female" : "male") : charMap[cmd[1]].name;
               case _: "";
             });
           i += 2;
@@ -215,14 +223,14 @@ class Story {
         SEnding.ending = e;
         Main.inst.applyState(Main.inst.getStateById("ending"));
         {nst: st, npo: po, stop: true};
-/*        case Music(id):
+        case Music(id):
         Music.play(id);
-        {nst: st, npo: po + 1, stop: false};*/
+        {nst: st, npo: po + 1, stop: false};
         case Seen(i):
         charMap[i].seen = true;
         {nst: st, npo: po + 1, stop: false};
-        case _:
-        {nst: st, npo: po + 1, stop: false};
+        //case _:
+        //{nst: st, npo: po + 1, stop: false};
       });
   }
   
@@ -245,6 +253,9 @@ class Story {
   }
   
   public function mouseDown(mx:Int, my:Int):Bool {
+    if (lock) {
+      return true;
+    }
     if (dialogueQueue.length == 0) {
       return false;
     }
@@ -257,6 +268,9 @@ class Story {
   }
   
   public function mouseUp(mx:Int, my:Int):Bool {
+    if (lock) {
+      return true;
+    }
     if (dialogueQueue.length == 0) {
       return false;
     }
@@ -311,14 +325,15 @@ class Story {
   }
   
   public function tick():Void {
-    if (dayNum == -1){ //} || dayNum == 9) {
+    if (dayNum == -1) {
       nextDay();
-      dayTime = 590;
+    }
+    if (lock) {
+      Main.ui.cursor = Wait;
     }
     Main.ui.dialogueMode = false;
     Main.ui.recording = false;
     Main.ui.portraitShow = false;
-    Main.ui.tapeAlt.setTo(false);
     switch (state) {
       case None:
       if (Main.ui.ren.selected == null) {
@@ -352,7 +367,7 @@ class Story {
           case Pause:
           Main.ui.cursor = Wait;
           case Choice(_):
-          Main.ui.tapeAlt.setTo(true);
+          Main.ui.tapeAltModeT = Choice;
           case _:
         }
       } else {
