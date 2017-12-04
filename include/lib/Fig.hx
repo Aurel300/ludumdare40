@@ -48,6 +48,7 @@ class Fig {
   public var iconSmall:Bitmap;
   public var to:String;
   public var speed:Float;
+  public var ident:Bool = false;
   
   public function new(char:String, from:String, to:String, ?speed:Float) {
     this.char = char;
@@ -87,11 +88,24 @@ class Fig {
     vy = 0;
     textShow = new Bitween(90);
     var charC = Main.story.charMap[char];
-    var armed = charC.armed;
     charC.location = "";
-    col = b_colours[armed ? (char == "ms" ? 2 : 1) : 0];
-    icon = b_icons[armed ? (char == "ms" ? 17 : 7) : 0];
-    iconSmall = b_iconsSmall[armed ? (char == "ms" ? 17 : 7) : 0];
+    col = 0;
+    icon = b_icons[0];
+    iconSmall = b_iconsSmall[0];
+    ident = false;
+  }
+  
+  public function click():Void {
+    textShow.setTo(true);
+    Main.story.charMap[char].seen = true;
+    if (!ident) {
+      var charC = Main.story.charMap[char];
+      ident = true;
+      col = b_colours[charC.armed ? (char == "ms" ? 2 : 1) : 0];
+      icon = b_icons[charC.armed ? (char == "ms" ? 17 : 7) : 0];
+      iconSmall = b_iconsSmall[charC.armed ? (char == "ms" ? 17 : 7) : 0];
+    }
+    SFX.s("MenuClick");
   }
   
   public function tick():Void {

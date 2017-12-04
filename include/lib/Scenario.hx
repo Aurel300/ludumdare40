@@ -45,7 +45,7 @@ class Scenario {
         .concat(sub).concat([
           NP(S(
                "$C[PHONE TRANSMISSION END\n"
-              +'$$C FROM $$DCELL-${fromCell == 0 ? "UNK" : "" + from}$$C - TO $$DCELL-${toCell == 0 ? "UNK" : "" + to}$$C]'
+              +'$$C FROM $$DCELL-${fromCell == 0 ? "UNK" : "" + fromCell}$$C - TO $$DCELL-${toCell == 0 ? "UNK" : "" + toCell}$$C]'
             ))
         ]);
     }
@@ -64,11 +64,11 @@ class Scenario {
     }
     return new Story([
         /* 1  */  new Day([
-            DialogueAction(Seen("may")), DialogueAction(Seen("aim")), DialogueAction(Seen("ml2"))
-            // Lock(true)
+            //DialogueAction(Seen("may")), DialogueAction(Seen("aim")), DialogueAction(Seen("ml2"))
+             Lock(true)
             //,Sound("IntroRetarded")
-            //,At(200, Lock(false))
-            //,Action(TalkToState("aim", "intro"))
+            ,At(200, Lock(false))
+            ,Action(TalkToState("aim", "intro"))
             ,Music("DroneChill")
             ,At(400, CharMove("d3", "d3p", "gs4"))
             ,At(1500, CharMove("d3", "gs4", "d3p"))
@@ -164,11 +164,11 @@ class Scenario {
               Call("cell3", "rl", "ml2", "call-mcms2"))) // MCMS2
             ,At(1010, Conditional(Alive("ml2"),
               Call("cell3", "rl", "ml2", "call-mcms2-b"))) // MCMS2
-          ], 5000)
+          ], 2000)
         /* 8  */ ,new Day([
             At(900, Conditional(Not(Alive("ml2")),
               Call("cell3", "rl", "ml1", "call-mcms1"))) // MCMS1
-          ], 5000)
+          ], 2000)
         /* 9  */ ,new Day([
              Music("InvestigationOnToSomething")
             ,Conditional(
@@ -344,7 +344,7 @@ class Scenario {
                 ,S("You have been brought on-line\n"
                   +"to investigate a possible revolt.")
                 ,NP(S("Should I brief you on the\n"
-                  +"situation? $C[tutorial recommended]"))
+                  +"situation?$C[recommended tutorial]"))
                 ,Choice([
                      {txt: "YES", res: "intro", label: "tutorial"}
                     ,{txt: "NO", res: "intro", label: "skip-tutorial"}
@@ -354,16 +354,16 @@ class Scenario {
                   +"tip and given the circumstances\n"
                   +"you are our best hope.")
                 ,S("You will be able to consult the\n"
-                  +"tapes and logs of the entire\n"
-                  +"city.")
+                  +"comms and ops of the entire\n"
+                  +"Metro city.")
                 ,S("The laws prohibit us from doing\n"
                   +"this ourselves. Although you are\n"
                   +"somewhat experimental, you will\n"
                   +"remain morally neutral, I hope.")
                 ,S("We are currently communicating\n"
                   +"over videophone link. During your\n"
-                  +"investigations you will need to\n"
-                  +"interrogate your suspects.")
+                  +"investigations you may need to\n"
+                  +"talk to your suspects.")
                 ,S("You have a list of contacts\n"
                   +"with videophone link numbers.")
                 ,NP(S("You know how to make choices\n"
@@ -394,14 +394,22 @@ class Scenario {
                 ,S("Move around by $Dholding down\n"
                   +"the $Dleft button$B on your virtual\n"
                   +"AI pointing device.")
+                ,S("$DClick people$B to scan them\n"
+                  +"remotely for weapons and ID.")
                 ,S("$DClick buildings$B to examine\n"
-                  +"them - then proceed to read\n"
-                  +"the $Dlogs$B, watch $Dtapes$B, or\n"
-                  +"activate the $Dsentinel$B.")
-                ,S("The sentinel automatically\n"
-                  +"arrests any person that you\n"
-                  +"marked as dangerous when they\n"
-                  +"enter the building. Use wisely.")
+                  +"them - you can see who is inside,\n"
+                  +"and you can plant $Dbugs$B and\n"
+                  +"$Dsentinels$B.")
+                ,S("$DBugs$B allow you to hear a\n"
+                  +"conversation between people in\n"
+                  +"the same building.")
+                ,S("The $Dsentinel$B automatically\n"
+                  +"eliminates any armed person\n"
+                  +"that enters the building.\n"
+                  +"Use wisely.")
+                ,S("Due to budget cuts you can\n"
+                  +"only deploy one of each\n"
+                  +"at a time.")
                 ,S("That is all.")
                 ,NP(S("Would you like me to repeat\n"
                   +"my briefing?"))
@@ -414,6 +422,11 @@ class Scenario {
                 ,S("Now that you know about\n"
                   +"the situation, you should talk\n"
                   +"to the mayor.")
+                ,S("Do not be afraid to press the\n"
+                  +"buttons above!")
+                ,S("They will represent the $Dphonebook$B,\n"
+                  +"the $Dcity$B, the $Dtapes$B,\n"
+                  +"the $Dmission status$B, and $Dsettings$B.")
               ]
             ,"no-understand" => [
                  S("Oh ...")

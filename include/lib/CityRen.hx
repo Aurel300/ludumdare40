@@ -113,9 +113,7 @@ class CityRen extends CRTRen {
     for (f in figs) {
       var top = pointcalc2(f.vx, f.vy, f.x - camX, f.y - camY, .4 * scale);
       if ((x - this.x).withinF(top.x - 8, top.x + 8) && (y - this.y).withinF(top.y - 16, top.y)) {
-        f.textShow.setTo(true);
-        Main.story.charMap[f.char].seen = true;
-        SFX.s("MenuClick");
+        f.click();
         return;
       }
     }

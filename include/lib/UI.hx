@@ -308,6 +308,8 @@ class UI {
       crtDisplay.setTo(true);
     } else {
       crtDisplay.setTo(false);
+      to.fillRect(10, crtY + 80, 103, 10, Pal.colours[8]);
+      to.fillRect(12, crtY + 82, ((1 - Main.story.dayTime / 5000) * 99).floor(), 6, Pal.colours[18]);
     }
     if (crtDisplay.isOn) {
       to.blitAlpha(b_portraits[portrait], 6, crtY + 6);

@@ -23,11 +23,10 @@ You take control of an AI which oversees the operation of a city via console. Yo
        - random names
      - actions
        - (read about)
-       - scripted assassinations
        - (search the Net for ...)
    - endings
+     - scripted assassinations
    - music
- - update tutorial
 
 
  - polish
