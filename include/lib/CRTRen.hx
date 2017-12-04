@@ -10,8 +10,8 @@ import sk.thenet.plat.Platform;
 using sk.thenet.FM;
 
 class CRTRen {
-  public static var crtEnable:Bool = false;
-  public static var crt:Float = .35;
+  public var crtEnable:Bool = false;
+  public var crt:Float = 0;
   
   public var x:Int;
   public var y:Int;
@@ -22,14 +22,14 @@ class CRTRen {
   var hh:Int;
   
   public var angle:Float = 0; // camera angle
-  public var angleT:Float = 0; //.7;
-  public var scale:Float = 6; //12;
-  public var scaleT:Float = 6; //12;
-  public var pitch:Float = 1; // 0;
-  public var pitchT:Float = 1; // .5;
+  public var angleT:Float = .7;
+  public var scale:Float = 12;
+  public var scaleT:Float = 12;
+  public var pitch:Float = 0;
+  public var pitchT:Float = .5;
   
-  var pitchLevel:Int = 3; //1;
-  var zoomLevel:Int = -1; //0;
+  var pitchLevel:Int = 1;
+  var zoomLevel:Int = 0;
   
   var xar:Int = 0; // x artefact
   var xarPh:Int = 0;
@@ -110,9 +110,25 @@ class CRTRen {
     angle = (angle * 9 + angleT) / 10;
   }
   
+  inline function pointcalc(x:Float, y:Float, h:Float):Point2DF {
+    return new Point2DF(
+         -co * x + si * y + wh
+        ,(-si * x - co * y) * pitch + hh - h
+      );
+  }
+  
+  inline function pointcalc2(ox:Float, oy:Float, bx:Float, by:Float, h:Float):Point2DF {
+    ox = (ox + bx) * scale;
+    oy = (oy + by) * scale;
+    return new Point2DF(
+         -co * ox + si * oy + wh
+        ,(-si * ox - co * oy) * pitch + hh - h
+      );
+  }
+  
   inline function line(
      vec:Vector<Colour>, col:Colour, ox1:Float, oy1:Float, ox2:Float, oy2:Float
-    ,bx:Float, by:Float, bh:Float
+    ,bx:Float, by:Float, bh:Float, ?bh2:Float = 0
   ):Void {
     ox1 = (ox1 + bx) * scale;
     oy1 = (oy1 + by) * scale;
@@ -121,7 +137,7 @@ class CRTRen {
     var x1 = -co * ox1 + si * oy1 + wh;
     var y1 = (-si * ox1 - co * oy1) * pitch + hh - bh;
     var x2 = -co * ox2 + si * oy2 + wh;
-    var y2 = (-si * ox2 - co * oy2) * pitch + hh - bh;
+    var y2 = (-si * ox2 - co * oy2) * pitch + hh - bh - bh2;
     var p1 = new Point2DI(x1.floor(), y1.floor());
     var p2 = new Point2DI(x2.floor(), y2.floor());
     if (crtEnable) {

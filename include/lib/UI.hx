@@ -61,8 +61,8 @@ class UI {
               ret >> new Grow(-79, -79, -79, -79);
             }
           ]);
-        b_tapeBG = f >> new Cut(302, 0, 140, 119);
-        b_tapeNums = f >> new Cut(442, 0, 7, 143);
+        b_tapeBG = f >> new Cut(411, 0, 140, 119);
+        b_tapeNums = f >> new Cut(520, 0, 7, 143);
         b_overlay = f >> new Cut(158, 154, 400, 300);
         b_zoom = Vector.fromArrayCopy([
             for (x in 0...4) for (y in 0...2) f >> new Cut(232 + 16 * x, 49 + 26 * y, 16, 26)
@@ -102,6 +102,7 @@ class UI {
   
   public var held:HeldButton = None;
   public var overlay:Bitween;
+  public var overlayCrt:Bitween;
   public var crt:Bitween;
   public var crtDisplay:Bitween;
   public var tapeControl:Bitween;
@@ -130,12 +131,14 @@ class UI {
   public function new(ren:CityRen) {
     Main.ui = this;
     overlay = new Bitween(120);
+    overlayCrt = new Bitween(240);
     crt = new Bitween(60);
     crtDisplay = new Bitween(20);
     tapeControl = new Bitween(55);
     tapeAlt = new Bitween(40);
     transcript = new Bitween(43);
     overlay.setTo(true);
+    overlayCrt.setTo(true);
     crt.setTo(true);
     tapeControl.setTo(true);
     transcript.setTo(true);
@@ -178,7 +181,7 @@ class UI {
         return TurnRight;
       } else {
         ren.pointer(mx, my);
-        return Move(mx, my);
+        return Move(mx, my, mx, my);
       }
     }
     if (mx.withinI(0, 15)) {
@@ -205,29 +208,33 @@ class UI {
     var ovY = -300 + Timing.quintOut.getI(overlay.valueF, 300);
     if (!overlay.isOn) {
       ren.scale = overlay.valueF * 12;
-      to.fillRect(0, 0, 400, 300, Pal.colours[0]);
     }
+    ren.crtEnable = !overlayCrt.isOn;
+    ren.crt = (1 - Timing.quadOut.getF(overlayCrt.valueF)) * 1.2;
     ren.render(to);
+    if (!overlay.isOn) {
+      to.fillRect(0, 300 + ovY, 400, 300 - ovY, Pal.colours[0]);
+    }
     to.blitAlpha(b_overlay, 0, ovY);
     
     if (cursor == Normal) {
       cursor = (switch (held) {
           case TurnLeft: ren.angleT -= .02; TurnLeft;
           case TurnRight: ren.angleT += .02; TurnRight;
-          case Move(mx, my):
+          case Move(mx, my, sx, sy):
           ren.move(Platform.mouse.x - mx, Platform.mouse.y - my);
-          held = Move(Platform.mouse.x, Platform.mouse.y);
+          held = Move(Platform.mouse.x, Platform.mouse.y, sx, sy);
           Move;
           case _:
           var dx = (3).negposI(Main.inst.keyboard.isHeld(KeyD), Main.inst.keyboard.isHeld(KeyA));
           var dy = (3).negposI(Main.inst.keyboard.isHeld(KeyS), Main.inst.keyboard.isHeld(KeyW));
-          var da = (.02).negposF(Main.inst.keyboard.isHeld(KeyE), Main.inst.keyboard.isHeld(KeyQ));
+          var da = (.02).negposF(Main.inst.keyboard.isHeld(KeyQ), Main.inst.keyboard.isHeld(KeyE));
           ren.angleT += da;
           ren.move(dx, dy);
           switch (at(Platform.mouse.x, Platform.mouse.y)) {
             case TurnLeft: TurnLeft;
             case TurnRight: TurnRight;
-            case Move(_, _): Move;
+            case Move(_, _, _, _): Move;
             case _: Normal;
           }
         });
@@ -358,6 +365,7 @@ class UI {
     }
     
     overlay.tick();
+    overlayCrt.tick();
     crt.tick();
     crtDisplay.tick();
     tapeControl.tick();
@@ -379,7 +387,7 @@ class UI {
   
   public function mouseUp(mx:Int, my:Int):Bool {
     switch (held) {
-      case None | TurnLeft | TurnRight | Move(_, _):
+      case None | TurnLeft | TurnRight | Move(_, _, _, _):
       case _: Main.am.getSound("CasetteStop").play();
     }
     switch (held) {
@@ -389,7 +397,11 @@ class UI {
       case ZoomOut: SFX.s("ZoomOut"); ren.zoomOut();
       case PitchUp: SFX.s("ZoomIn"); ren.pitchUp();
       case PitchDown: SFX.s("ZoomOut"); ren.pitchDown();
-      case TurnLeft | TurnRight | Move(_, _):
+      case TurnLeft | TurnRight:
+      case Move(mx, my, sx, sy):
+      if ((mx - sx).absI() < 5 && (my - sy).absI() < 5) {
+        ren.select(mx, my);
+      }
       case _:
       return false;
     }
@@ -408,5 +420,5 @@ enum HeldButton {
   PitchDown;
   TurnLeft;
   TurnRight;
-  Move(mx:Int, my:Int);
+  Move(mx:Int, my:Int, sx:Int, sy:Int);
 }

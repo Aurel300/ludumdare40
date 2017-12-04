@@ -1,14 +1,14 @@
 package lib;
 
 import sk.thenet.bmp.*;
-import sk.thenet.geom.Point2DF;
+import sk.thenet.geom.*;
 import sk.thenet.stream.prng.*;
 
 using sk.thenet.FM;
 
 class Building {
   public static function make(
-    x:Int, y:Int, s:Bitmap, id:String, type:BuildingType
+    x:Int, y:Int, s:Bitmap, sx:Int, sy:Int, id:String, type:BuildingType
   ):Building {
     var ret = new Building();
     ret.id = id;
@@ -16,6 +16,10 @@ class Building {
     if (id == ".") ret.type = Road;
     ret.x = x;
     ret.y = y;
+    ret.xi = sx;
+    ret.yi = sy;
+    ret.w = s.width;
+    ret.h = s.height;
     var bwh = s.width >> 1;
     var bhh = s.height >> 1;
     var vec = s.getVector();
@@ -29,6 +33,7 @@ class Building {
         ];
     }
     if (vec[0].isTransparent) {
+      ret.lShape = true;
       var sx = 0;
       for (x in 1...s.width) {
         if (!vec[x].isTransparent) {
@@ -53,6 +58,7 @@ class Building {
           ,new Point2DF(0, sy)
         ];
     } else {
+      ret.lShape = false;
       ground = box(0, 0, s.width, s.height);
     }
     ret.x += bwh;
@@ -104,15 +110,36 @@ class Building {
   public var type:BuildingType;
   public var x:Float;
   public var y:Float;
+  public var xi:Int;
+  public var yi:Int;
+  public var w:Int;
+  public var h:Int;
   public var floors:Array<Array<Point2DF>>;
   public var col:Colour;
   public var seed:UInt;
   public var prng:ParkMiller;
   public var prngen:Generator;
+  public var name:String;
+  public var dis:String;
+  public var prefix:String;
+  public var lShape:Bool;
   
   public function new() {
     seed = FM.prng.next();
     prng = new ParkMiller(seed);
     prngen = new Generator(prng);
+  }
+  
+  public function createPrefix():Void {
+    prefix = name + "\n" + dis + " district\n\n";
+  }
+  
+  public function getPoint():Point2DI {
+    var pos = lShape || FM.prng.nextBool();
+    if (FM.prng.nextBool()) {
+      return new Point2DI(xi + (pos ? w : -1), yi + FM.prng.nextMod(h));
+    } else {
+      return new Point2DI(xi + FM.prng.nextMod(w), yi + (pos ? h : -1));
+    }
   }
 }

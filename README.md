@@ -23,9 +23,12 @@ You take control of an AI which oversees the operation of a city via console. Yo
      . text in transcript
      - record interactions
      . dialogue system, triggers and conditions
+     - **"people" walking around**
+       - random names
      - actions
        - (read about)
-       - look into logs for (free)
+       - look into logs (free)
+         - logs
        - watch / listen to tapes
        - event (scheduled for certain times of day)
        - skip rest of day

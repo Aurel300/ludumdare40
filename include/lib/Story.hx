@@ -12,6 +12,7 @@ class Story {
   public var charMap:Map<String, Char>;
   public var dayNum:Int;
   public var dayPos:Int;
+  public var dayTime:Int;
   public var tape:Array<TapeRecord>;
   public var state:StoryState;
   public var dialogueQueue:Array<DialogueAction> = [];
@@ -29,7 +30,6 @@ class Story {
     tape = [];
     state = None;
     dayNum = -1;
-    dayPos = 0;
     if (Debug.CONSOLE_COMMANDS) {
       Console.commands["story"] = (args:Array<String>) -> {
           if (args.length != 0) {
@@ -91,10 +91,15 @@ class Story {
       });
   }
   
-  public function runDayEvent(d:DayEvent):Void {
+  public function runDayEvent(d:DayEvent):Bool {
     switch (d) {
-      case Action(a): runAction(a);
+      case Action(a): runAction(a); return true;
+      case Call(id):
+      case Meeting(id):
+      case Conditional(c, e): if (evalCond(c)) return runDayEvent(e);
+      case At(t, e): if (dayTime >= t) return runDayEvent(e);
     }
+    return false;
   }
   
   public function runAction(a:Action):Void {
@@ -173,6 +178,7 @@ class Story {
   public function nextDay():Void {
     dayNum++;
     dayPos = 0;
+    dayTime = 0;
     if (dayNum < days.length) {
       Main.ui.write(' \n${days[dayNum].show()}\n ');
     }
@@ -253,9 +259,11 @@ class Story {
     Main.ui.tapeAlt.setTo(false);
     switch (state) {
       case None:
+      dayTime++;
       if (dayPos < days[dayNum].events.length) {
-        runDayEvent(days[dayNum].events[dayPos]);
-        dayPos++;
+        if (runDayEvent(days[dayNum].events[dayPos])) {
+          dayPos++;
+        }
       } else if (dayPos >= days[dayNum].length) {
         nextDay();
       }

@@ -91,7 +91,8 @@ class Main extends Application {
             ,Pal.bind()
           ].concat((cast Scenario.binds():Array<Asset>))
           .concat((cast City.binds():Array<Asset>))
-          .concat((cast UI.binds():Array<Asset>)))
+          .concat((cast UI.binds():Array<Asset>))
+          .concat((cast Fig.binds():Array<Asset>)))
         ,Keyboard
         ,Mouse
         ,Console

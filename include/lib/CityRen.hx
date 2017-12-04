@@ -1,6 +1,7 @@
 package lib;
 
 import haxe.ds.Vector;
+import sk.thenet.anim.*;
 import sk.thenet.bmp.*;
 import sk.thenet.geom.*;
 import sk.thenet.stream.bmp.*;
@@ -10,7 +11,6 @@ import sk.thenet.plat.Platform;
 using sk.thenet.FM;
 
 class CityRen extends CRTRen {
-  public var center:Point2DI; //?
   public var pointerX:Float = 0;
   public var pointerY:Float = 0;
   public var pointerShown:Bool = false;
@@ -20,10 +20,18 @@ class CityRen extends CRTRen {
   public var camY:Float = 0;
   public var camTX:Float = 25.0; // camera target
   public var camTY:Float = 25.0;
+  public var selected:Building = null;
+  public var preselPitchLevel:Int;
+  public var preselZoomLevel:Int;
+  public var preselAngleT:Float;
+  public var selectedText:Bitween;
+  public var figs:Array<Fig>;
   
   public function new(x:Int, y:Int, w:Int, h:Int) {
     super(x, y, w, h);
-    center = new Point2DI(wh, hh);
+    selectedText = new Bitween(30);
+    figs = [];
+    figs.push(new Fig("th", "mrf"));
   }
   
   public function move(dx:Int, dy:Int):Void {
@@ -44,19 +52,62 @@ class CityRen extends CRTRen {
     pointerShown = true;
   }
   
+  public function select(x:Float, y:Float):Void {
+    for (f in figs) {
+      var top = pointcalc2(f.vx, f.vy, f.x - camX, f.y - camY, .4 * scale);
+      if ((x - this.x).withinF(top.x - 8, top.x + 8) && (y - this.y).withinF(top.y - 16, top.y)) {
+        f.textShow.setTo(true);
+      }
+    }
+    pointer(x, y);
+    var px = pointerX.floor();
+    var py = pointerY.floor();
+    if (px.withinI(0, City.CW - 1) && py.withinI(0, City.CH - 1)) {
+      var mi = px + py * City.CW;
+      if (Main.city.map[mi] != null && selected == null) {
+        SFX.s("BootUp");
+        selected = Main.city.map[mi];
+        selectedText.setTo(true);
+        preselPitchLevel = pitchLevel;
+        preselZoomLevel = zoomLevel;
+        preselAngleT = angleT;
+      } else if (selected != null) {
+        SFX.s("TurnOffPCDisplay");
+        selected = null;
+        selectedText.setTo(false, true);
+        pitchLevel = preselPitchLevel;
+        pitchScale();
+        zoomLevel = preselZoomLevel;
+        zoomScale();
+        angleT = preselAngleT % Math.PI;
+        angle = angle % Math.PI;
+      }
+    }
+  }
+  
   public function render(to:Bitmap):Void {
-    if (camTX < 0) {
-      camTX = camTX * .9;
-    } else if (camTX > City.CW) {
-      camTX = (camTX - City.CW) * .9 + City.CW;
+    if (selected != null) {
+      camX = (camX * 10 + selected.x) / 11;
+      camY = (camY * 10 + selected.y) / 11;
+      angleT += .01;
+      pitchLevel = 2;
+      pitchScale();
+      zoomLevel = 2;
+      zoomScale();
+    } else {
+      if (camTX < 0) {
+        camTX = camTX * .9;
+      } else if (camTX > City.CW) {
+        camTX = (camTX - City.CW) * .9 + City.CW;
+      }
+      if (camTY < 0) {
+        camTY = camTY * .9;
+      } else if (camTY > City.CH) {
+        camTY = (camTY - City.CH) * .9 + City.CH;
+      }
+      camX = (camX * 10 + camTX) / 11;
+      camY = (camY * 10 + camTY) / 11;
     }
-    if (camTY < 0) {
-      camTY = camTY * .9;
-    } else if (camTY > City.CH) {
-      camTY = (camTY - City.CH) * .9 + City.CH;
-    }
-    camX = (camX * 10 + camTX) / 11;
-    camY = (camY * 10 + camTY) / 11;
     //var oangle = angle;
     prerender();
     var vec = to.getVectorRect(x, y, w, h);
@@ -68,10 +119,42 @@ class CityRen extends CRTRen {
       pointerShown = false;
     }
     for (b in Main.city.buildings) {
-      renderBuilding(vec, co, si, b);
+      if (selected == null || selected == b) {
+        renderBuilding(vec, co, si, b);
+      }
     }
     //angle = oangle;
+    if (selected == null) {
+      figs = [ for (f in figs) {
+          if (f.remove) continue;
+          line(vec, f.col, 0, 0, f.vx, f.vy, f.x - camX, f.y - camY, 0, .4 * scale);
+          f.tick();
+          f;
+        } ];
+    }
     to.setVectorRect(x, y, w, h, vec);
+    if (selected != null) {
+      var log = selected.prefix;
+      UI.f_fonts[0].render(
+           to, x + 50, y + 20
+          ,log.substr(0, Timing.quadInOut.getI(selectedText.valueF, log.length + 1))
+        );
+    } else {
+      for (f in figs) {
+        var top = pointcalc2(f.vx, f.vy, f.x - camX, f.y - camY, .4 * scale);
+        top.x -= 4;
+        top.y -= 8;
+        if (zoomLevel > 1) {
+          top.x -= 4;
+          top.y -= 8;
+        }
+        to.blitAlpha(zoomLevel > 1 ? f.icon : f.iconSmall, top.x.floor() + x, top.y.floor() + y);
+        if (!f.textShow.isOff) {
+          UI.f_fonts[1].render(to, top.x.floor() + x, top.y.floor() - 10 + y, Main.story.charMap[f.char].name);
+        }
+      }
+    }
+    selectedText.tick();
     /*
     for (b in c.buildings) {
       if (b.id != null) {
