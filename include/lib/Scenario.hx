@@ -64,7 +64,7 @@ class Scenario {
     }
     return new Story([
         /* 1  */  new Day([
-            DialogueAction(Seen("may")), DialogueAction(Seen("aim"))
+            DialogueAction(Seen("may")), DialogueAction(Seen("aim")), DialogueAction(Seen("ml2"))
             // Lock(true)
             //,Sound("IntroRetarded")
             //,At(200, Lock(false))
@@ -108,14 +108,14 @@ class Scenario {
             ,At(800, CharMove("d8", "d8p", "pp4"))
             ,At(900, CharMove("d3", "d3p", "d5p"))
             ,At(1000, CharMove("d4", "d4p", "d5p"))
-            ,Conditional(
-                 All([Location("d3", "d5p"), Location("d4", "d5p")])
-                ,Meeting("d5p", 300, 3100, TalkToState("d3", "bug-mm1")) // MM1
-              )
             ,At(1900, CharMove("ml2", "d2p", "c2"))
             ,Conditional(
                  Location("ml2", "c2")
                 ,Meeting("c2", 1900, 2500, TalkToState("ml2", "bug-mcm0"))//MCM0
+              )
+            ,Conditional(
+                 All([Location("d3", "d5p"), Location("d4", "d5p")])
+                ,Meeting("d5p", 300, 3100, TalkToState("d3", "bug-mm1")) // MM1
               )
             ,At(2500, CharMove("ml2", "c2", "gs1"))
             ,At(3100, CharMove("d3", "d5p", "d4p"))
@@ -262,7 +262,8 @@ class Scenario {
             ,At(3600, CharMove("d8", "pp4", "d8p"))
           ], 5000)
       ], [
-        "talked-mayor" => FBool(false)
+         "talked-mayor" => FBool(false)
+        ,"target-aim" => FBool(false)
       ], [
         new Char("aim", "Grep Shamir",
            "AIM (AI manager) in Metro\n\n"
@@ -336,7 +337,7 @@ class Scenario {
                 ,Choice([
                      {txt: "YES", res: "intro", label: "understand"}
                     ,{txt: "NO", res: "no-understand"}
-                  ])
+                  ], false)
                 ,Label("understand")
                 ,S("Good. I am Grep, your AIM.\n"
                   +"(AI Manager)")
@@ -347,7 +348,7 @@ class Scenario {
                 ,Choice([
                      {txt: "YES", res: "intro", label: "tutorial"}
                     ,{txt: "NO", res: "intro", label: "skip-tutorial"}
-                  ])
+                  ], false)
                 ,Label("tutorial")
                 ,S("The mayor received an anonymous\n"
                   +"tip and given the circumstances\n"
@@ -370,7 +371,7 @@ class Scenario {
                 ,Choice([
                      {txt: "YES", res: "intro", label: "choices-yes"}
                     ,{txt: "NO", res: "intro", label: "choices-no"}
-                  ])
+                  ], false)
                 ,Label("choices-no")
                 ,S("See, that was a choice.")
                 ,S("(I don't recall you having\n"
@@ -407,7 +408,7 @@ class Scenario {
                 ,Choice([
                      {txt: "YES", res: "intro", label: "tutorial"}
                     ,{txt: "NO", res: "intro", label: "skip-tutorial"}
-                  ])
+                  ], false)
                 ,Label("skip-tutorial")
                 ,Seen("may")
                 ,S("Now that you know about\n"
@@ -445,7 +446,17 @@ class Scenario {
                      {txt: "ADVICE", res: "advice"}
                     ,{txt: "STATUS", res: "status"}
                     ,{txt: "BYE", res: "stop"}
-                  ])
+                  ], true)
+              ]
+            ,"react.aim.call-rmms" => [
+                 S("Hnnnh. This is suspicious.\nBut not incriminating.\nTry to follow this through.")
+                ,GoToStateLabel("greet", "choice")
+              ]
+            ,"react.aim.bug-rmm" => [
+                 S("Hnyah. This is very good.\nI guess Greppie will be...")
+                ,S("Missed oh so dearly.")
+                ,S("But alas, it is too late:\nThe money has been pushed.")
+                ,GoToStateLabel("greet", "choice")
               ]
             ,"advice" => [
                 RandomState([ for (i in 1...5) 'advice$i' ])
@@ -470,6 +481,29 @@ class Scenario {
                 ,S("Hnhnhnnhyyaaahnyhnhn.")
                 ,GoToStateLabel("greet", "choice")
               ]
+            ,"status" => [
+                 Conditional(DayReached(10), GoToState("status10"))
+                ,Conditional(DayReached(6), GoToState("status6"))
+                ,Conditional(GoalsReached(1), GoToState("status2"))
+                ,S("You gotta show us something,\nyou know ...")
+                ,GoToStateLabel("greet", "choice")
+              ]
+            ,"status10" => [
+                 S("So this is it, eh?")
+                ,S("I might have to go down\nwith the city.")
+                ,S("Ancient mariners used\nto do that, you know.")
+                ,S("Hnyeh ... hneyh.")
+                ,GoToStateLabel("greet", "choice")
+              ]
+            ,"status6" => [
+                 Conditional(GoalsReached(2), S("Can I even trust\nmy friends?"))
+                ,Conditional(Not(GoalsReached(2)), S("We must have missed\nsomething obvious!"))
+                ,GoToStateLabel("greet", "choice")
+              ]
+            ,"status2" => [
+                 S("Keep going, you can\nsolve this.")
+                ,GoToStateLabel("greet", "choice")
+              ]
           ]))
         ,new Char("rl", "Arin Robotka",
            "Leader of the White Craft\n\n"
@@ -477,17 +511,15 @@ class Scenario {
           +"$Beven more mysterious political\n"
           +"$Borganisation.", 0, ["idle" => 0], new Dialogue("greet", [
              "greet" => [S("?")]
-            ,"call-mcms2" => [
-                 callStart(null, null)
-                ,S("Is this Clip Mech?")
+            ,"call-mcms2" => callFull(null, null, 3, 0, [
+                 S("Is this Clip Mech?")
                 ,SP("Who's askin'?")
                 ,S("A man with some finances.")
                 ,SP("Whaddaya want?")
                 ,S("Not one for idle chatter,\nare you?")
                 ,SP("I don't sell words!")
                 ,S("Okay, okay, I ge--")
-                ,callInfo(3, 0)
-              ]
+              ])
             ,"call-mcms2-b" => [
                  callStart(null, null)
                 ,SP("What!")
@@ -623,14 +655,14 @@ class Scenario {
                  callStart("d1", "d2")
                 ,S("Hey - Route?")
                 ,SP("...")
-                ,S("I know you're still mad at me for Monday ...")
+                ,S("I know you're still mad at me\nfor Monday ...")
                 ,SP("...")
-                ,S("But I can make it up to you, I promise.")
+                ,S("But I can make it up to you,\nI promise.")
                 ,S("I got the money this time.")
                 ,SP("... it's not about the money.")
                 ,S("What is it then?")
                 ,SP("It's ... ugh, never mind.")
-                ,S("Let's have dinner at Isaa this Friday, what do you say?")
+                ,S("Let's have dinner at Isaa this\nFriday, what do you say?")
                 ,SP("...")
                 ,S("I'll be waiting for you.")
                 ,callInfo(1, 4)
@@ -889,6 +921,6 @@ class Scenario {
         ,new Char("ms", "Militant", "", 0, ["idle" => 0], new Dialogue("greet", [
             "greet" => []
           ]))
-      ]);
+      ], []);
   }
 }

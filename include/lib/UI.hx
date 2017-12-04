@@ -535,6 +535,9 @@ class UI {
             playbackPos = -1;
           }
           case 1 | 4: 
+          if (dialogueMode && i == 1 && (tapeNum - 1).withinI(0, Main.story.tape.length - 1)) {
+            Main.story.tapeSelect(Main.story.tape[tapeNum - 1]);
+          }
           tapeAltModeT = Normal;
           playbackOn = false;
           playbackPos = -1;

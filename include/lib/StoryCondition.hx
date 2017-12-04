@@ -9,7 +9,9 @@ enum StoryCondition {
   Func(f:Story->Bool);
   
   FlagBool(id:String);
-  
+  GoalsReached(g:Int);
+  GoalReached(id:String);
+  DayReached(n:Int);
   Reachable(char:String);
   InCity(char:String);
   Alive(char:String);

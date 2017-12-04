@@ -75,6 +75,12 @@ class Fig {
             at(n.x + off[0], n.y + off[1])
           ].filter(p -> p != null)
       );
+      /*
+    if (path == null) {
+      trace("NULL PATH!");
+      trace("from", a);
+      trace("to", b);
+    }*/
     x = a.x + .5;
     y = a.y + .5;
     vx = 0;

@@ -38,7 +38,7 @@ class Char {
   
   public function buildPrefix():String {
     if (!seen) {
-      //return prefix = "???\n\n";
+      return prefix = "???\n\n";
     }
     return prefix = '$name (${female ? "F" : "M"})\n\n$bio';
   }

@@ -47,6 +47,9 @@ class CityRen extends CRTRen {
       activePh = 0;
       activeTimer = t;
       activeChannel = SFX.s("RingtoneShort", Loop(6));
+      if (a == None) {
+        activeChannel.setVolume(0);
+      }
       activeAction = a;
     }
   }

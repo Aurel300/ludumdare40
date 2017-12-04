@@ -8,6 +8,8 @@ class Story {
   public var days:Array<Day>;
   public var flags:Map<String, StoryFlag>;
   public var chars:Array<Char>;
+  public var goals:Map<String, Bool>;
+  public var goalsReached:Int = 0;
   
   public var charMap:Map<String, Char>;
   public var dayNum:Int;
@@ -19,7 +21,8 @@ class Story {
   public var lock:Bool = false;
   
   public function new(
-    days:Array<Day>, flags:Map<String, StoryFlag>, chars:Array<Char>
+     days:Array<Day>, flags:Map<String, StoryFlag>, chars:Array<Char>
+    ,goals:Array<String>
   ) {
     for (i in 0...days.length) {
       days[i].num = i;
@@ -27,6 +30,10 @@ class Story {
     this.days = days;
     this.flags = flags;
     this.chars = chars;
+    this.goals = new Map<String, Bool>();
+    for (g in goals) {
+      this.goals[g] = false;
+    }
     reload();
     tape = [];
     state = None;
@@ -99,6 +106,9 @@ class Story {
           case FBool(v): v;
           case _: false;
         }
+        case GoalsReached(n): goalsReached >= n;
+        case GoalReached(id): goals[id];
+        case DayReached(n): dayNum >= n - 1;
         case Reachable(char): charMap[char].reachable;
         case InCity(char): charMap[char].inCity;
         case Alive(char): charMap[char].alive;
@@ -128,7 +138,9 @@ class Story {
         case CharAlive(id, r): charMap[id].alive = r; true;
         case CharArmed(id, r): charMap[id].armed = r; true;
         case CharMove(id, from, to, speed):
-        Main.ui.ren.figs.push(new Fig(id, from, to, speed));
+        if (charMap[id].alive) {
+          Main.ui.ren.figs.push(new Fig(id, from, to, speed));
+        }
         true;
         case CharLocation(id, to): charMap[id].location = to; true;
         case Conditional(c, e): (evalCond(c) && runDayEvent(e));
@@ -201,11 +213,14 @@ class Story {
         }
         {nst: st, npo: po + 1, stop: pause};
         case NP(a): runDialogueAction(a, d, st, po, false);
-        case Choice(cs):
+        case Choice(cs, tape):
         var ci = 1;
         for (c in cs) {
           Main.ui.write('$$B${ci}) ${c.txt}');
           ci++;
+        }
+        if (tape) {
+          Main.ui.write("$B<TAPES ACCEPTED>");
         }
         dialogueQueue.push(a);
         {nst: st, npo: po + 1, stop: false};
@@ -301,13 +316,41 @@ class Story {
     return false;
   }
   
+  public function tapeSelect(tape:Array<TapeRecord>):Void {
+    var id = null;
+    for (t in tape) {
+      switch (t) {
+        case Label(m): id = m; break;
+        case _:
+      }
+    }
+    trace("id: " + id);
+    if (id != null) {
+      switch (state) {
+        case TalkingTo(c, st, po):
+        var dia = charMap[c].dialogue;
+        var key = "react." + id;
+        if (dia.states.exists(key)) {
+          state = TalkingTo(c, key, 0);
+          dialogueQueue.shift();
+        } else {
+          SFX.s("ClickError");
+        }
+        case _:
+      }
+    }
+  }
+  
   public function uiSelect(i:Int):Void {
     if (dialogueQueue.length == 0) {
       return;
     }
     switch (dialogueQueue[0]) {
-      case Choice(cs):
-      if (i < cs.length && Main.ui.writeQueue.length == 0) {
+      case Choice(cs, tape):
+      if (Main.ui.writeQueue.length != 0) {
+        return;
+      }
+      if (i < 3 && i < cs.length) {
         switch (state) {
           case TalkingTo(c, st, po):
           Main.ui.write('$$B                       (${i + 1})');
@@ -319,6 +362,8 @@ class Story {
           dialogueQueue.shift();
           case _:
         }
+      } else if (tape && i >= 3) {
+        Main.ui.tapeAltModeT = Listen;
       }
       case _:
     }
@@ -340,6 +385,18 @@ class Story {
     return false;
   }
   
+  public function checkGoals():Void {
+    switch (state) {
+      case TalkingTo(c, st, _):
+      var k = c + "." + st;
+      if (goals.exists(k) && !goals[k]) {
+        goals[k] = true;
+        goalsReached++;
+      }
+      case _:
+    }
+  }
+  
   public function tick():Void {
     if (dayNum == -1) {
       nextDay();
@@ -355,6 +412,17 @@ class Story {
       case None:
       if (Main.ui.renView == City && Main.ui.ren.selected == null) {
         dayTime++;
+        if (Main.ui.ren.sentinel != null) {
+          for (c in chars) {
+            if (c.alive && c.armed && c.location == Main.ui.ren.sentinel.id) {
+              Main.ui.ren.activate(Main.ui.ren.sentinel, 100, None);
+              c.alive = false;
+              c.location = "";
+              Main.ui.write("# TARGET ELIMINATED");
+              SFX.s("Shutdown2");
+            }
+          }
+        }
       }
       if (dayPos < days[dayNum].events.length) {
         if (runDayEvent(days[dayNum].events[dayPos])) {
@@ -368,6 +436,7 @@ class Story {
         nextDay();
       }
       case TalkingTo(c, st, po):
+      checkGoals();
       Main.ui.dialogueMode = true;
       Main.ui.recording = true;
       Main.ui.portrait = charMap[c].portrait;
@@ -386,8 +455,14 @@ class Story {
           }
           case Pause:
           Main.ui.cursor = Wait;
-          case Choice(_):
-          Main.ui.tapeAltModeT = Choice;
+          case Choice(_, tape):
+          var rst = true;
+          if (tape && Main.ui.tapeAltModeT == Listen) {
+            rst = false;
+          }
+          if (rst) {
+            Main.ui.tapeAltModeT = Choice;
+          }
           case _:
         }
       } else {
@@ -398,6 +473,7 @@ class Story {
           while (dialogueQueue.length == 0 && po < dia.states[st].length) {
             var next = runDialogueAction(dia.states[st][po], dia, st, po);
             state = TalkingTo(c, next.nst, next.npo);
+            checkGoals();
             if (checkDialogueExit() || next.stop) {
               break;
             }
