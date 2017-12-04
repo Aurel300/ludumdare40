@@ -85,7 +85,7 @@ class UI {
         false;
       }), new AssetBind(["portraits"], (am, _) -> {
         var f = am.getBitmap("portraits").fluent;
-        b_portraits = Vector.fromArrayCopy([ for (i in 0...2) f >> new Cut(0, i * 87, 111, 87) ]);
+        b_portraits = Vector.fromArrayCopy([ for (i in 0...3) f >> new Cut(0, i * 87, 111, 87) ]);
         false;
       })];
   }
@@ -103,7 +103,7 @@ class UI {
   static var b_tapeBG:Bitmap;
   static var b_tapeNums:Bitmap;
   static var b_overlay:Bitmap;
-  static var b_portraits:Vector<Bitmap>;
+  public static var b_portraits:Vector<Bitmap>;
   static var b_zoom:Vector<Bitmap>;
   
   public var held:HeldButton = None;
@@ -124,6 +124,8 @@ class UI {
   public var tapeDigits:Array<Float>;
   public var tapeDigitsT:Array<Float>;
   public var ren:CityRen;
+  public var pho:PhoneRen;
+  public var phone:PhoneRen;
   public var recording:Bool = false;
   public var wasRecording:Bool = false;
   public var portrait:Int = 0;
@@ -143,7 +145,7 @@ class UI {
   public var writePh:Int = 0;
   public var writeSound:Int = 0;
   
-  public function new(ren:CityRen) {
+  public function new(ren:CityRen, pho:PhoneRen) {
     Main.ui = this;
     overlay = new Bitween(120);
     overlayCrt = new Bitween(240);
@@ -163,6 +165,7 @@ class UI {
     tapeDigitsT = [0, 0, 0, 0];
     writeBuffer = Platform.createBitmap(129, 70 + 16, 0);
     this.ren = ren;
+    this.pho = pho;
     tapeChannel = SFX.s("TapeRewind", Forever);
     tapeChannel.setVolume(0);
     tapeChannel.setPan(.3);
@@ -182,6 +185,12 @@ class UI {
     var s = '0000$num'.substr(-4);
     for (i in 0...4) {
       tapeDigitsT[i] = s.charCodeAt(i) - '0'.code;
+    }
+  }
+  
+  public function writeLabel(m:String):Void {
+    if (recording) {
+      lastTrack.push(Label(m));
     }
   }
   
@@ -250,9 +259,12 @@ class UI {
     if (!overlay.isOn) {
       ren.scale = overlay.valueF * 12;
     }
-    ren.crtEnable = !overlayCrt.isOn;
-    ren.crt = (1 - Timing.quadOut.getF(overlayCrt.valueF)) * 1.2;
-    ren.render(to, dialogueMode);
+    pho.crtEnable = ren.crtEnable = !overlayCrt.isOn;
+    pho.crt = ren.crt = (1 - Timing.quadOut.getF(overlayCrt.valueF)) * 1.2;
+    switch (renView) {
+      case Phonebook: pho.render(to);
+      case _: ren.render(to, dialogueMode);
+    }
     if (!overlay.isOn) {
       to.fillRect(0, 300 + ovY, 400, 300 - ovY, Pal.colours[0]);
     }
@@ -402,7 +414,7 @@ class UI {
     if (tapeAltMode == Listen && playbackOn
         && playbackPos.withinI(0, Main.story.tape[tapeNum - 1].length - 1)) {
       switch (Main.story.tape[tapeNum - 1][playbackPos]) {
-        case Text(msg) | LabelStart(msg) | LabelEnd(msg):
+        case Text(msg):
         if (writeQueue.length == 0) {
           writeQueue.push(msg);
           playbackPos++;
@@ -414,7 +426,7 @@ class UI {
           }
           tapeSpeed += .1;
         }
-        case _:
+        case _: playbackPos++;
       }
     }
     
@@ -426,7 +438,11 @@ class UI {
         var rs = f_fonts[0].render(writeBuffer, 2, 70, writeQueue.shift(), f_fonts);
         trWheel = rs.y - 70 + 2;
       } else {
-        if (writeQueue[0].charAt(writePos) != " " && writePh == 0) {
+        while (writePos < writeQueue[0].length
+            && writeQueue[0].charAt(writePos) == " ") {
+          writePos++;
+        }
+        if (writePh == 0) {
           SFX.s('Typewriter${writeSound + 1}');
           tapeSpeed += .1;
           writeSound += 1 + FM.prng.nextMod(3);
@@ -530,9 +546,22 @@ class UI {
       case PitchUp: SFX.s("ZoomIn"); ren.pitchUp();
       case PitchDown: SFX.s("ZoomOut"); ren.pitchDown();
       case TurnLeft | TurnRight:
+      if (renView == Phonebook) {
+        if (held == TurnLeft) {
+          pho.flip(-1);
+        } else {
+          pho.flip(1);
+        }
+      }
       case Move(mx, my, sx, sy):
-      if ((mx - sx).absI() < 5 && (my - sy).absI() < 5) {
-        ren.select(mx, my);
+      switch (renView) {
+        case Phonebook:
+        pho.call();
+        case City:
+        if ((mx - sx).absI() < 5 && (my - sy).absI() < 5) {
+          ren.select(mx, my);
+        }
+        case _:
       }
       case _:
       return false;

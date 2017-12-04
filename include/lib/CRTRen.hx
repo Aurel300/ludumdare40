@@ -143,10 +143,10 @@ class CRTRen {
     var p1 = new Point2DI(x1.floor(), y1.floor());
     var p2 = new Point2DI(x2.floor(), y2.floor());
     if (crtEnable) {
-      var gx1 = (x1 /= w) - .5;
-      var gy1 = (y1 /= h) - .5;
-      var gx2 = (x2 /= w) - .5;
-      var gy2 = (y2 /= h) - .5;
+      var gx1 = ((x1 /= w) - .5) * (1 + FM.prng.nextFloat() * crt * .08);
+      var gy1 = ((y1 /= h) - .5) * (1 + FM.prng.nextFloat() * crt * .08);
+      var gx2 = ((x2 /= w) - .5) * (1 + FM.prng.nextFloat() * crt * .08);
+      var gy2 = ((y2 /= h) - .5) * (1 + FM.prng.nextFloat() * crt * .08);
       p1.x = ((x1 - crt * (gx1 * gx1 * gx1)) * w).floor();
       p1.y = ((y1 - crt * (gy1 * gy1 * gy1)) * h).floor();
       p2.x = ((x2 - crt * (gx2 * gx2 * gx2)) * w).floor();

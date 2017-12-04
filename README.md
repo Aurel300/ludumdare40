@@ -19,13 +19,11 @@ You take control of an AI which oversees the operation of a city via console. Yo
 
  - priority
    - core gameplay
-     . dialogue system, triggers and conditions
      . "people" walking around
        - random names
      - actions
        - (read about)
        - **talk to / call**
-         - phonebook
          - known / unknown
          - faces
        - place sentinel on building (and autocapture)
@@ -36,7 +34,6 @@ You take control of an AI which oversees the operation of a city via console. Yo
  - polish
    - dialogue on/off - manip with scale to stretch / squeeze image
  - story
-   - people bios
    . dialogue lines
  - UI
  - ...

@@ -8,6 +8,8 @@ enum StoryCondition {
   Any(a:Array<StoryCondition>);
   Func(f:Story->Bool);
   
+  FlagBool(id:String);
+  
   Reachable(char:String);
   InCity(char:String);
   Alive(char:String);

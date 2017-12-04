@@ -33,6 +33,22 @@ class Scenario {
     function bugInfo(loc:String) {
       return DialogueAction.NP(DialogueAction.S("$C[PHONOSTREAM END]"));
     }
+    function callFull(from:String, to:String, fromCell:Int, toCell:Int, sub:Array<DialogueAction>):Array<DialogueAction> {
+      return [
+          DialogueAction.EvalS(
+               "$C[PHONE TRANSMISSION INTERCEPT\n"
+              +"$C C-ER: " + (from != null ? '%vnum.$from%' : "#.#.#.#") + "\n"
+              +"$C C-EE: " + (to != null ? '%vnum.$to%' : "#.#.#.#") + "]"
+            )
+        ].concat(from != null ? [VNumSeen(from)] : [])
+        .concat(to != null ? [VNumSeen(to)] : [])
+        .concat(sub).concat([
+          NP(S(
+               "$C[PHONE TRANSMISSION END\n"
+              +'$$C FROM $$DCELL-${fromCell == 0 ? "UNK" : "" + from}$$C - TO $$DCELL-${toCell == 0 ? "UNK" : "" + to}$$C]'
+            ))
+        ]);
+    }
     function callStart(?from:String, ?to:String):DialogueAction {
       return EvalS(
            "$C[PHONE TRANSMISSION INTERCEPT\n"
@@ -48,10 +64,11 @@ class Scenario {
     }
     return new Story([
         /* 1  */  new Day([
-             Lock(true)
-            ,Sound("IntroRetarded")
-            ,At(200, Lock(false))
-            ,Action(TalkToState("aim", "intro"))
+            DialogueAction(Seen("may")), DialogueAction(Seen("aim"))
+            // Lock(true)
+            //,Sound("IntroRetarded")
+            //,At(200, Lock(false))
+            //,Action(TalkToState("aim", "intro"))
             ,Music("DroneChill")
             ,At(400, CharMove("d3", "d3p", "gs4"))
             ,At(1500, CharMove("d3", "gs4", "d3p"))
@@ -67,23 +84,28 @@ class Scenario {
                  All([Location("d1", "c3"), Location("d2", "c3")])
                 ,Meeting("c3", 300, 1800, TalkToState("d1", "bug-mm0")) // MM0
               )
+            ,At(800, CharMove("d8", "d8p", "pp4"))
             ,At(1800, Call("cell3", "d3", "d4", "call-mms1")) // MMS1
             ,At(2300, CharMove("d1", "c3", "d1p"))
             ,At(2320, CharMove("d2", "c3", "c2"))
             ,At(3200, CharMove("d2", "c2", "d2p"))
-          ], 3600)
+            ,At(3600, CharMove("d8", "pp4", "d8p"))
+          ], 4000)
         /* 3  */ ,new Day([
              Music("DroneChill")
             ,At(800, Call("cell4", "d5", "d6", "call-mms2")) // MMS2
+            ,At(800, CharMove("d8", "d8p", "pp4"))
             ,At(1800, Call("cell1", "aim", "rl", "call-rmms")) // RMMS
             ,At(2300, CharMove("aim", "th", "c1"))
             ,At(2200, Call("cell2", "d8", "d1", "call-mms3")) // MMS3
             ,At(2900, CharMove("aim", "c1", "th"))
-          ], 3600)
+            ,At(3600, CharMove("d8", "pp4", "d8p"))
+          ], 4000)
         /* 4  */ ,new Day([
              Music("HackerConversation")
             ,At(400, CharArmed("ml2", true))
             ,At(500, CharMove("ml2", "gs1", "d2p"))
+            ,At(800, CharMove("d8", "d8p", "pp4"))
             ,At(900, CharMove("d3", "d3p", "d5p"))
             ,At(1000, CharMove("d4", "d4p", "d5p"))
             ,Conditional(
@@ -99,9 +121,11 @@ class Scenario {
             ,At(3100, CharMove("d3", "d5p", "d4p"))
             ,At(3120, Call("cell1", "d1", "d2", "call-mms4")) // MMS4
             ,At(3140, CharMove("d4", "d5p", "d4p"))
+            ,At(3600, CharMove("d8", "pp4", "d8p"))
           ], 5000)
         /* 5  */ ,new Day([
              Music("EasterEgg")
+            ,At(800, CharMove("d8", "d8p", "pp4"))
             ,At(1300, CharMove("d5", "d5p", "c1"))
             ,At(1600, CharMove("d6", "d6p", "c1"))
             ,Conditional(
@@ -110,7 +134,7 @@ class Scenario {
               )
             ,At(1620, CharMove("d5", "c1", "d5p"))
             ,At(1640, CharMove("d6", "c1", "d6p"))
-            ,At(3350, CharMove("d8", "d8p", "gs4"))
+            ,At(3350, CharMove("d8", "pp4", "gs4"))
             ,At(4150, CharMove("d1", "d1p", "gs4", 1.3))
             ,Conditional(
                  All([Location("d8", "gs4"), Location("d1", "gs4")])
@@ -121,6 +145,7 @@ class Scenario {
           ], 5000)
         /* 6  */ ,new Day([
              Music("DroneChill")
+            ,At(800, CharMove("d8", "d8p", "pp4"))
             ,At(1100, CharMove("rl", "f3", "c1"))
             ,At(2400, CharMove("aim", "th", "c1"))
             ,Conditional(
@@ -128,6 +153,7 @@ class Scenario {
                 ,Meeting("c1", 2400, 3800, TalkToState("aim", "bug-rmm")) // RMM
               )
             ,At(3300, CharMove("d1", "d1p", "gs2")) // "MM4"
+            ,At(3600, CharMove("d8", "pp4", "d8p"))
             ,At(3800, CharMove("rl", "c1", "gs1"))
             ,At(4000, CharMove("aim", "c1", "th"))
             ,At(4800, CharMove("d1", "gs2", "d1p"))
@@ -149,6 +175,7 @@ class Scenario {
                  All([Alive("ml2")])
                 ,At( 800, CharMove("rl", "f3", "c1"))
               )
+            ,At(800, CharMove("d8", "d8p", "pp4"))
             ,Conditional(
                  All([Location("rl", "c1"), Alive("ml2")])
                 ,At(1800, CharMove("rl", "c1", "c3"))
@@ -162,6 +189,7 @@ class Scenario {
                 ,Meeting("mrf", 2800, 3800, TalkToState("rl", "bug-mcm2"))
                 // MCM2
               )
+            ,At(3600, CharMove("d8", "pp4", "d8p"))
           ], 5000)
         /* 10 */ ,new Day([
              Music("InvestigationGotEm")
@@ -169,6 +197,7 @@ class Scenario {
                  All([Not(Alive("ml2"))])
                 ,At( 800, CharMove("rl", "f3", "c1"))
               )
+            ,At(800, CharMove("d8", "d8p", "pp4"))
             ,Conditional(
                  All([Location("rl", "c1"), Not(Alive("ml2"))])
                 ,At(1800, CharMove("rl", "c1", "c3"))
@@ -182,6 +211,7 @@ class Scenario {
                 ,Meeting("mrf", 2400, 3800, TalkToState("rl", "bug-mcm1"))
                 // MCM1
               )
+            ,At(3600, CharMove("d8", "pp4", "d8p"))
           ], 5000)
         /* 11 */ ,new Day([
              Music("SynthWave1")
@@ -191,6 +221,7 @@ class Scenario {
             ,At(650, Music("Action1"))
             ,At(700, CharMove("ms", "mrf", "mrts", 2.0))
             ,At(800, CharMove("ms", "mrf", "mrts", 2.0))
+            ,At(800, CharMove("d8", "d8p", "pp4"))
             ,At(840, CharMove("ms", "mrf", "mrts", 2.0))
             ,At(860, CharMove("ms", "mrf", "mrts", 2.0))
             ,At(880, CharMove("ms", "mrf", "mrts", 2.0))
@@ -202,6 +233,7 @@ class Scenario {
             ,At(940, CharMove("ms", "mrf", "mrts", 2.0))
             ,At(980, CharMove("ms", "mrf", "mrts", 2.0))
             ,At(1100, Music("DroneChill"))
+            ,At(3600, CharMove("d8", "pp4", "d8p"))
             // MWT1 / MWT2
           ], 5000)
         /* 12 */ ,new Day([
@@ -226,9 +258,18 @@ class Scenario {
             ,At(700, Conditional(Not(Alive("ml2")), CharMove("ml1", "mrts", "th", 2.0)))
             ,At(700, CharMove("rl", "mrts", "th", 2.0))
             ,Music("ActionChaos")
+            ,At(800, CharMove("d8", "d8p", "pp4"))
+            ,At(3600, CharMove("d8", "pp4", "d8p"))
           ], 5000)
-      ], [], [
-        new Char("aim", "Grep Shamir", 0, [
+      ], [
+        "talked-mayor" => FBool(false)
+      ], [
+        new Char("aim", "Grep Shamir",
+           "AIM (AI manager) in Metro\n\n"
+          +"$BDirect subordinate of the mayor.\n"
+          +"$BHas played a crucial role in the\n"
+          +"$Bdevelopment of AI-centered laws\n"
+          +"$Bin Metro.", 0, [
             "idle" => 0
           ], new Dialogue("greet", [
             // calls
@@ -368,6 +409,7 @@ class Scenario {
                     ,{txt: "NO", res: "intro", label: "skip-tutorial"}
                   ])
                 ,Label("skip-tutorial")
+                ,Seen("may")
                 ,S("Now that you know about\n"
                   +"the situation, you should talk\n"
                   +"to the mayor.")
@@ -381,14 +423,59 @@ class Scenario {
                 S("Hello.")
               ]
           ]))
-        ,new Char("may", "Roy Bezier", 1, [
+        ,new Char("may", "Roy Bezier",
+           "Mayor of Metro\n\n"
+          +"$BA relatively unknown character\n"
+          +"$Bin the political scene prior to\n"
+          +"$Bhis election.\n\n"
+          +"$BOwns three labrobotor retrievers.", 1, [
             "idle" => 0
           ], new Dialogue("greet", [
             "greet" => [
-                 S("Well hello there.")
+                 S("Well hello hello. Hnhhnnyaah.")
+                ,Conditional(FlagBool("talked-mayor"), GoToLabel("choice"))
+                ,SetFlagBool("talked-mayor", true)
+                ,S("How is your investigation going?")
+                ,S("Hnhhh just kidding! I don't think\nyou understand that sort of\nquestions.")
+                ,S("Even though you are Greppie's\npride.")
+                ,S("Hnhnhyaahn.")
+                ,Label("choice")
+                ,S("So, what do you want?")
+                ,Choice([
+                     {txt: "ADVICE", res: "advice"}
+                    ,{txt: "STATUS", res: "status"}
+                    ,{txt: "BYE", res: "stop"}
+                  ])
+              ]
+            ,"advice" => [
+                RandomState([ for (i in 1...5) 'advice$i' ])
+              ]
+            ,"advice1" => [
+                 S("Hnnhh... You can navigate the\nmap using your 'virtual AI'\nkeyboard too, you know.")
+                ,S("I've been told the keys\nare 'dubbya-aesdee, queue'n eh'.")
+                ,S("I don't understand nerdspeak.")
+                ,GoToStateLabel("greet", "choice")
+              ]
+            ,"advice2" => [
+                 S("Examine CELL towers to\nfigure out which buildings they\ncover.")
+                ,GoToStateLabel("greet", "choice")
+              ]
+            ,"advice3" => [
+                 S("Hmmh ... Nothing comes to mind.")
+                ,GoToStateLabel("greet", "choice")
+              ]
+            ,"advice4" => [
+                 S("Sometimes the answer is\nstaring you in the face.")
+                ,S("Though I'm not sure about\nyou, without a face.")
+                ,S("Hnhnhnnhyyaaahnyhnhn.")
+                ,GoToStateLabel("greet", "choice")
               ]
           ]))
-        ,new Char("rl", "Arin Robotka", 0, ["idle" => 0], new Dialogue("greet", [
+        ,new Char("rl", "Arin Robotka",
+           "Leader of the White Craft\n\n"
+          +"$BA mysterious figure leading an\n"
+          +"$Beven more mysterious political\n"
+          +"$Borganisation.", 0, ["idle" => 0], new Dialogue("greet", [
              "greet" => [S("?")]
             ,"call-mcms2" => [
                  callStart(null, null)
@@ -473,10 +560,21 @@ class Scenario {
                 ,bugInfo("mrf")
               ]
           ]), false, true)
-        ,new Char("ml1", "Mod Choke", 0, ["idle" => 0], new Dialogue("greet", [
+        ,new Char("ml1", "Mod Choke",
+           "Mercenary Leader\n\n"
+          +"$BLeader of the mercenary company\n"
+          +"$BSons of Choral. Seems to be somewhat\n"
+          +"$Bover-educated for a mercenary boss.\n\n"
+          +"$BMod's Sons are known for having funny\n"
+          +"$Bnicknames behind their backs.", 0, ["idle" => 0], new Dialogue("greet", [
             "greet" => [S("?")]
           ]), false, true)
-        ,new Char("ml2", "Clip Mech", 0, ["idle" => 0], new Dialogue("greet", [
+        ,new Char("ml2", "Clip Mech",
+           "Mercenary Leader\n\n"
+          +"$BLeader of the mercenary company\n"
+          +"$BClip Mech and the Boys. Is likely\n"
+          +"$Bthe son of a crucial figure in the\n"
+          +"$BMetro's sub-underground scene.", 2, ["idle" => 0], new Dialogue("greet", [
             "greet" => [S("?")]
             ,"bug-mcm0" => [
                  bugStart(["ml2", "?"])
@@ -501,7 +599,12 @@ class Scenario {
               ]
           ]), false, true)
         
-        ,new Char("d1", "Chip Babbage", 0, ["idle" => 0], new Dialogue("greet", [
+        ,new Char("d1", "Chip Babbage",
+           "Banker\n\n"
+          +"$BRookie in the Metro financial scene,\n"
+          +"$Bdespite having little to no competition.\n\n"
+          +"$BEither has some money anyway or knows\n"
+          +"$Bhow to make second-hand suits look brand new.", 0, ["idle" => 0], new Dialogue("greet", [
              "greet" => []
             ,"bug-mm0" => [
                  bugStart(["d1", "d2"])
@@ -533,10 +636,20 @@ class Scenario {
                 ,callInfo(1, 4)
               ]
           ]))
-        ,new Char("d2", "Nut Router", 0, ["idle" => 0], new Dialogue("greet", [
+        ,new Char("d2", "Nut Router",
+           "Desperado\n\n"
+          +"$BThe unsung hero, the overlooked master,\n"
+          +"$Bthe forgotten guru, the silent snake,\n"
+          +"$Bninja, avenger, space cowboy: all the\n"
+          +"$Bnicknames Nut Router wishes he had instead.", 0, ["idle" => 0], new Dialogue("greet", [
             "greet" => []
           ]))
-        ,new Char("d3", "Bug Cobalt", 0, ["idle" => 0], new Dialogue("greet", [
+        ,new Char("d3", "Bug Cobalt",
+           "General-purpose mechanic\n\n"
+          +"$BHits the gym on a regular basis, rarely\n"
+          +"$Breads mechanics' guides, but is somehow\n"
+          +"$Bthe most effective worker at his job.\n\n"
+          +"$BEnjoys coffee.", 0, ["idle" => 0], new Dialogue("greet", [
              "greet" => []
             ,"call-mms1" => [
                  callStart("d3", "d4")
@@ -571,10 +684,18 @@ class Scenario {
                 ,bugInfo("d5p")
               ]
           ]))
-        ,new Char("d4", "Boot Pisano", 0, ["idle" => 0], new Dialogue("greet", [
+        ,new Char("d4", "Boot Pisano",
+           "Bug's Friend\n\n"
+          +"$BHas no know political affiliation\n"
+          +"$Bbesides voting for his (non-candidate)\n"
+          +"$Bfriend in every election.", 0, ["idle" => 0], new Dialogue("greet", [
             "greet" => []
           ]))
-        ,new Char("d5", "Mortimer Buffers", 0, ["idle" => 0], new Dialogue("greet", [
+        ,new Char("d5", "Mortimer Buffers",
+           "Self-proclaimed sceptic\n\n"
+          +"$BExistential terror keeps him going.\n"
+          +"$BHas a job, but likes to pretend he is\n"
+          +"$Bnot a part of the commercial industry.", 0, ["idle" => 0], new Dialogue("greet", [
              "greet" => []
             ,"call-mms2" => [
                  callStart("d5", "d6")
@@ -668,13 +789,19 @@ class Scenario {
                 ,bugInfo("c1")
               ]
           ]))
-        ,new Char("d6", "Infinity Render", 0, ["idle" => 0], new Dialogue("greet", [
+        ,new Char("d6", "Infinity Render",
+           "Private Eye\n\n"
+          +"$BKeeps a private eye on her friends\n"
+          +"$Bjust in case they were criminals\n"
+          +"$Bsubconsciously. Would probably try to\n"
+          +"$Bforgive them anyway.", 0, ["idle" => 0], new Dialogue("greet", [
             "greet" => []
           ]), true)
-        ,new Char("d7", "Marlyn Nagle", 0, ["idle" => 0], new Dialogue("greet", [
-            "greet" => []
-          ]), true)
-        ,new Char("d8", "Ada Core", 0, ["idle" => 0], new Dialogue("greet", [
+        ,new Char("d8", "Ada Core",
+           "Power Plant Engineer\n\n"
+          +"$BIs properly educated but often proposes\n"
+          +"$Bexplanations requiring some aluminium head\n"
+          +"$Bcovers to understand properly.", 0, ["idle" => 0], new Dialogue("greet", [
              "greet" => []
             ,"call-mms3" => [
                  callStart("d8", "d1")
@@ -759,7 +886,7 @@ class Scenario {
                 ,bugInfo("gs4")
               ]
           ]), true)
-        ,new Char("ms", "Militant", 0, ["idle" => 0], new Dialogue("greet", [
+        ,new Char("ms", "Militant", "", 0, ["idle" => 0], new Dialogue("greet", [
             "greet" => []
           ]))
       ]);

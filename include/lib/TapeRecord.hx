@@ -1,8 +1,7 @@
 package lib;
 
 enum TapeRecord {
-  LabelStart(m:String);
+  Label(m:String);
   Text(str:String);
-  LabelEnd(m:String);
   Sound(snd:String);
 }

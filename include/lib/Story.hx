@@ -6,7 +6,7 @@ using sk.thenet.FM;
 
 class Story {
   public var days:Array<Day>;
-  public var flags:Array<StoryFlag>;
+  public var flags:Map<String, StoryFlag>;
   public var chars:Array<Char>;
   
   public var charMap:Map<String, Char>;
@@ -19,7 +19,7 @@ class Story {
   public var lock:Bool = false;
   
   public function new(
-    days:Array<Day>, flags:Array<StoryFlag>, chars:Array<Char>
+    days:Array<Day>, flags:Map<String, StoryFlag>, chars:Array<Char>
   ) {
     for (i in 0...days.length) {
       days[i].num = i;
@@ -95,6 +95,10 @@ class Story {
         case All(a): [ for (ss in a) if (evalCond(ss)) 1 ].length == a.length;
         case Any(a): [ for (ss in a) if (evalCond(ss)) 1 ].length > 0;
         case Func(f): f(this);
+        case FlagBool(id): switch (flags[id]) {
+          case FBool(v): v;
+          case _: false;
+        }
         case Reachable(char): charMap[char].reachable;
         case InCity(char): charMap[char].inCity;
         case Alive(char): charMap[char].alive;
@@ -107,6 +111,7 @@ class Story {
   public function runDayEvent(d:DayEvent):Bool {
     return (switch (d) {
         case Action(a): runAction(a); true;
+        case DialogueAction(a): runDialogueAction(a, null, null, 0); true;
         case Call(cell, from, to, st):
         Main.ui.ren.activate(Main.city.idMap[cell], 1080, TalkToState(from, st));
         true;
@@ -228,19 +233,30 @@ class Story {
         {nst: st, npo: po + 1, stop: false};
         case Seen(i):
         charMap[i].seen = true;
+        charMap[i].vnumSeen = true;
+        charMap[i].vnumAssoc = true;
+        charMap[i].buildPrefix();
         {nst: st, npo: po + 1, stop: false};
-        //case _:
-        //{nst: st, npo: po + 1, stop: false};
+        case VNumSeen(i):
+        charMap[i].vnumSeen = true;
+        charMap[i].buildPrefix();
+        {nst: st, npo: po + 1, stop: false};
+        case RandomState(ns):
+        {nst: FM.prng.nextElement(ns), npo: 0, stop: false};
+        case SetFlagBool(i, val):
+        flags[i] = StoryFlag.FBool(val);
+        {nst: st, npo: po + 1, stop: false};
       });
   }
   
   public function talkTo(c:String, ?st:String):Void {
     var char = charMap[c];
     Main.ui.portrait = char.portrait;
+    if (st == null) st = char.dialogue.start;
     if (st.substr(0, 4) != "call" && st.substr(0, 3) != "bug") {
       Main.ui.write('# ${char.name}');
     }
-    state = TalkingTo(c, st != null ? st : char.dialogue.start, 0);
+    state = TalkingTo(c, st, 0);
   }
   
   public function nextDay():Void {
@@ -331,12 +347,13 @@ class Story {
     if (lock) {
       Main.ui.cursor = Wait;
     }
+    var wasRecording = Main.ui.recording;
     Main.ui.dialogueMode = false;
     Main.ui.recording = false;
     Main.ui.portraitShow = false;
     switch (state) {
       case None:
-      if (Main.ui.ren.selected == null) {
+      if (Main.ui.renView == City && Main.ui.ren.selected == null) {
         dayTime++;
       }
       if (dayPos < days[dayNum].events.length) {
@@ -355,6 +372,9 @@ class Story {
       Main.ui.recording = true;
       Main.ui.portrait = charMap[c].portrait;
       Main.ui.portraitShow = true;
+      if (!wasRecording) {
+        Main.ui.writeLabel(c + "." + st);
+      }
       if (dialogueQueue.length > 0) {
         switch (dialogueQueue[0]) {
           case Wait(n):

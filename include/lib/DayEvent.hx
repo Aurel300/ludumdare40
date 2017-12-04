@@ -2,6 +2,7 @@ package lib;
 
 enum DayEvent {
   Action(a:Action);
+  DialogueAction(a:DialogueAction);
   Call(fromCell:String, from:String, to:String, st:String);
   Meeting(id:String, t1:Int, t2:Int, a:Action);
   CharReachable(id:String, r:Bool);

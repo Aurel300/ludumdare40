@@ -18,6 +18,9 @@ enum DialogueAction {
   Ending(e:String);
   EvalS(txt:String);
   Seen(i:String);
+  VNumSeen(i:String);
+  RandomState(ns:Array<String>);
+  SetFlagBool(i:String, val:Bool);
   // Show
   // ShowBuilding
   // FreeAction // when interrogating / asking?
