@@ -17,7 +17,7 @@ class Char {
   public var vnumSecret:Bool = false;
   public var seen:Bool = false;
   public var vnumSeen:Bool = false;
-  public var vnumAssoc:Bool = false;
+  //public var vnumAssoc:Bool = false;
   public var prefix:String;
   
   public function new(

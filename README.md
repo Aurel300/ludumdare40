@@ -15,27 +15,24 @@ This is the repo for my game for [LD40](https://ldjam.com/). It is (will be) wri
 
 You take control of an AI which oversees the operation of a city via console. You are investigating a possible rebellion. You can interrogate people by navigating a city map, looking at buildings, and then videophoning. Every conversation is recorded on tape and transcript. (Twist: the more human interaction you have, the worse your experience is, because you are becoming sentient and rampant.) You can revise video recordings from public cameras. The (apparent) end goal is to identify the source of the rebellion.
 
-## TODO < 6 hours!!!!! ##
+## TODO ≤ 2 hours!!!!! ##
 
  - priority
-   - core gameplay
-     . "people" walking around
-       - random names
-     - actions
-       - (read about)
-       - (search the Net for ...)
-   - endings
-     - scripted assassinations
    - music
 
+ . "people" walking around
+   - random names
 
  - polish
    - dialogue on/off - manip with scale to stretch / squeeze image
    - portraits
  - story
    . dialogue lines
+   - (read about)
+   - (search the Net for ...)
  - UI
- - ...
+   - status
+   - settings
 
 ## Sound / music list ##
 

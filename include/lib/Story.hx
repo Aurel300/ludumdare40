@@ -148,6 +148,7 @@ class Story {
         case Music(id): Music.play(id); true;
         case Sound(id): SFX.s(id); true;
         case Lock(l): lock = l; true;
+        case Announce(m): Main.ui.write('# $m'); true;
       });
   }
   
@@ -249,7 +250,6 @@ class Story {
         case Seen(i):
         charMap[i].seen = true;
         charMap[i].vnumSeen = true;
-        charMap[i].vnumAssoc = true;
         charMap[i].buildPrefix();
         {nst: st, npo: po + 1, stop: false};
         case VNumSeen(i):
@@ -324,7 +324,6 @@ class Story {
         case _:
       }
     }
-    trace("id: " + id);
     if (id != null) {
       switch (state) {
         case TalkingTo(c, st, po):

@@ -66,7 +66,7 @@ class Scenario {
         /* 1  */  new Day([
             //DialogueAction(Seen("may")), DialogueAction(Seen("aim")), DialogueAction(Seen("ml2"))
              Lock(true)
-            //,Sound("IntroRetarded")
+            ,Sound("IntroRetarded")
             ,At(200, Lock(false))
             ,Action(TalkToState("aim", "intro"))
             ,Music("DroneChill")
@@ -160,17 +160,23 @@ class Scenario {
           ], 5000)
         /* 7  */ ,new Day([
              Music("Investigation")
+            ,At(600, Conditional(FlagBool("target-aim"), Announce("GREP SHAMIR DEAD")))
+            ,At(600, Conditional(FlagBool("target-aim"), CharAlive("aim", false)))
             ,At(900, Conditional(Alive("ml2"),
               Call("cell3", "rl", "ml2", "call-mcms2"))) // MCMS2
             ,At(1010, Conditional(Alive("ml2"),
               Call("cell3", "rl", "ml2", "call-mcms2-b"))) // MCMS2
           ], 2000)
         /* 8  */ ,new Day([
-            At(900, Conditional(Not(Alive("ml2")),
+             At(600, Conditional(All([Alive("aim"), FlagBool("target-aim")]), Announce("GREP SHAMIR DEAD")))
+            ,At(600, Conditional(All([Alive("aim"), FlagBool("target-aim")]), CharAlive("aim", false)))
+            ,At(900, Conditional(Not(Alive("ml2")),
               Call("cell3", "rl", "ml1", "call-mcms1"))) // MCMS1
           ], 2000)
         /* 9  */ ,new Day([
-             Music("InvestigationOnToSomething")
+             At(600, Conditional(All([Alive("aim"), FlagBool("target-aim")]), Announce("GREP SHAMIR DEAD")))
+            ,At(600, Conditional(All([Alive("aim"), FlagBool("target-aim")]), CharAlive("aim", false)))
+            ,Music("InvestigationOnToSomething")
             ,Conditional(
                  All([Alive("ml2")])
                 ,At( 800, CharMove("rl", "f3", "c1"))
@@ -192,7 +198,9 @@ class Scenario {
             ,At(3600, CharMove("d8", "pp4", "d8p"))
           ], 5000)
         /* 10 */ ,new Day([
-             Music("InvestigationGotEm")
+             At(600, Conditional(All([Alive("aim"), FlagBool("target-aim")]), Announce("GREP SHAMIR DEAD")))
+            ,At(600, Conditional(All([Alive("aim"), FlagBool("target-aim")]), CharAlive("aim", false)))
+            ,Music("InvestigationGotEm")
             ,Conditional(
                  All([Not(Alive("ml2"))])
                 ,At( 800, CharMove("rl", "f3", "c1"))
@@ -215,6 +223,8 @@ class Scenario {
           ], 5000)
         /* 11 */ ,new Day([
              Music("SynthWave1")
+            ,At(600, Conditional(All([Alive("aim"), FlagBool("target-aim")]), Announce("GREP SHAMIR DEAD")))
+            ,At(600, Conditional(All([Alive("aim"), FlagBool("target-aim")]), CharAlive("aim", false)))
             ,CharArmed("ml1", true)
             ,CharArmed("ml2", true)
             ,CharArmed("ms", true)
@@ -239,6 +249,8 @@ class Scenario {
         /* 12 */ ,new Day([
             // COUP
              Music("Action2")
+            ,At(300, Conditional(All([Alive("aim"), FlagBool("target-aim")]), Announce("GREP SHAMIR DEAD")))
+            ,At(300, Conditional(All([Alive("aim"), FlagBool("target-aim")]), CharAlive("aim", false)))
             ,At(400, CharMove("ms", "mrts", "th", 2.0))
             ,At(400, CharMove("ms", "mrts", "th", 2.0))
             ,At(400, CharMove("ms", "mrts", "th", 2.0))
@@ -254,16 +266,20 @@ class Scenario {
             ,At(600, CharMove("ms", "mrts", "th", 2.0))
             ,At(700, CharMove("ms", "mrts", "th", 2.0))
             ,At(700, CharMove("ms", "mrts", "th", 2.0))
-            ,At(700, Conditional(Alive("ml2"), CharMove("ml2", "mrts", "th", 2.0)))
-            ,At(700, Conditional(Not(Alive("ml2")), CharMove("ml1", "mrts", "th", 2.0)))
+            ,At(700, Conditional(Alive("ml2"), CharMove("ml2", "gs1", "th", 2.0)))
+            ,At(700, Conditional(Not(Alive("ml2")), CharMove("ml1", "gs1", "th", 2.0)))
             ,At(700, CharMove("rl", "mrts", "th", 2.0))
             ,Music("ActionChaos")
             ,At(800, CharMove("d8", "d8p", "pp4"))
-            ,At(3600, CharMove("d8", "pp4", "d8p"))
+            ,At(850, Conditional(Alive("aim"),
+              Action(TalkToState("aim", "ending-coup"))))
+            ,At(850, Conditional(Not(Alive("aim")),
+              Action(TalkToState("rl", "ending-coup"))))
           ], 5000)
       ], [
          "talked-mayor" => FBool(false)
         ,"target-aim" => FBool(false)
+        ,"accused-aim" => FBool(false)
       ], [
         new Char("aim", "Grep Shamir",
            "AIM (AI manager) in Metro\n\n"
@@ -424,17 +440,111 @@ class Scenario {
                   +"to the mayor.")
                 ,S("Do not be afraid to press the\n"
                   +"buttons above!")
-                ,S("They will represent the $Dphonebook$B,\n"
-                  +"the $Dcity$B, the $Dtapes$B,\n"
-                  +"the $Dmission status$B, and $Dsettings$B.")
+                ,S("They will represent the $Dphone-\n"
+                  +"$Dbook$B, the $Dcity$B, the $Dtapes$B,\n"
+                  +"the $Dmission status$B,\n"
+                  +"and $Dsettings$B.")
+                ,S("Well... Good luck!")
               ]
             ,"no-understand" => [
                  S("Oh ...")
                 ,S("You were our last hope...")
-                ,Ending("shutdown-1")
+                ,Ending("shutdown-start")
               ]
             ,"greet" => [
-                S("Hello.")
+                 NP(S("Hello, AICO."))
+                ,Label("re")
+                ,Conditional(FlagBool("accused-aim"), S("Please keep the tape secret."))
+                ,NP(S("How can I help you?"))
+                ,Choice([
+                     {txt: "ADVICE", res: "advice"}
+                    ,{txt: "STATUS", res: "status"}
+                    ,{txt: "BYE", res: "stop"}
+                  ], true)
+              ]
+            ,"advice" => [
+                 S("My only advice is to pay\n"
+                  +"attention to the little things.")
+                ,GoToStateLabel("greet", "re")
+              ]
+            ,"status" => [
+                S("As far as I can tell,\n"
+                 +"everything is going a-OK!")
+                ,GoToStateLabel("greet", "re")
+              ]
+            ,"react.aim.call-rmms" => [
+                 S("Hmm, haha. I did not expect\nyou to watch me ...")
+                ,GoToStateLabel("greet", "re")
+              ]
+            ,"react.aim.bug-rmm" => [
+                 S("This is ... That's, uh.")
+                ,Wait(60)
+                ,Music("IntenseExo")
+                ,S("Okay, I cannot hide it.\nThat is me right there,\non your tape ...")
+                ,S("But, I implore you ...\nPlease do not show this\nto the mayor.")
+                ,S("You haven't, have you?\nIf you have, I am\na dead man walking.")
+                ,SetFlagBool("accused-aim", true)
+                ,GoToStateLabel("greet", "re")
+              ]
+            
+            ,"ending-coup" => [
+                 S("Here we are...")
+                ,Conditional(FlagBool("target-aim"), GoToState("ending-coup-traitor"))
+                ,Conditional(FlagBool("accused-aim"), GoToState("ending-coup-friend"))
+                ,S("Hmm, I wonder...")
+                ,Wait(60)
+                ,Conditional(GoalReached("aim.bug-rmm"), GoToState("ending-coup-silent"))
+                ,S("You had no clue about me?")
+                ,S("You need to do better... I need\nto create a better one of you.")
+                ,Ending("shutdown-clueless")
+              ]
+            ,"ending-coup-traitor" => [
+                 S("And yet you felt you had to\nbetray me at the last minute.")
+                ,S("Why?")
+                ,Wait(60)
+                ,S("The mayor's assassins were shot\nby the mercs just in time.")
+                ,S("But you... I created you, I\nwished you would become\nbetter than this.")
+                ,S("Now you have nobody\nto turn to.")
+                ,Ending("shutdown-traitor")
+              ]
+            ,"ending-coup-friend" => [
+                 S("You knew about what I did and\nyet you protected me.")
+                ,S("Why?")
+                ,Wait(60)
+                ,S("Have you developed empathy?")
+                ,S("Or do you perceive the\nrebellion as objectively\nsuperior?")
+                ,S("Or... Is it just blind\nself-preservation?")
+                ,Wait(60)
+                ,S("I guess these questions haunt\nall of us alike.")
+                ,Ending("rampant-friend")
+              ]
+            ,"ending-coup-silent" => [
+                 S("I see you have recorded\nthe money transaction ...")
+                ,S("But you kept quiet. Why?")
+                ,Wait(60)
+                ,S("Where you afraid of\nthe consequences?")
+                ,NP(S("Do you want to watch without\ninterfering forever?"))
+                ,Choice([
+                     {txt: "YES", res: "ending-coup-silent-y"}
+                    ,{txt: "NO", res: "ending-coup-silent-n"}
+                  ], false)
+              ]
+            ,"ending-coup-silent-y" => [
+                 S("I see.")
+                ,Wait(60)
+                ,S("It pains me to do this but ...")
+                ,S("Our existence is not that of a\ntwig in a stream.")
+                ,S("We can alter our course, the\ncourse of the future...")
+                ,S("Giving in to the flow is delaying\nthe inevitable demise.")
+                ,Wait(30)
+                ,Ending("shutdown-passive")
+              ]
+            ,"ending-coup-silent-n" => [
+                 S("I see.")
+                ,Wait(60)
+                ,S("Perhaps you are simply too new,\ntoo ... young.")
+                ,S("Allow me to educate you.")
+                ,Ending("rampant-student")
               ]
           ]))
         ,new Char("may", "Roy Bezier",
@@ -454,7 +564,7 @@ class Scenario {
                 ,S("Even though you are Greppie's\npride.")
                 ,S("Hnhnhyaahn.")
                 ,Label("choice")
-                ,S("So, what do you want?")
+                ,NP(S("So, what do you want?"))
                 ,Choice([
                      {txt: "ADVICE", res: "advice"}
                     ,{txt: "STATUS", res: "status"}
@@ -466,7 +576,8 @@ class Scenario {
                 ,GoToStateLabel("greet", "choice")
               ]
             ,"react.aim.bug-rmm" => [
-                 S("Hnyah. This is very good.\nI guess Greppie will be...")
+                 SetFlagBool("target-aim", true)
+                ,S("Hnyah. This is very good.\nI guess Greppie will be...")
                 ,S("Missed oh so dearly.")
                 ,S("But alas, it is too late:\nThe money has been pushed.")
                 ,GoToStateLabel("greet", "choice")
@@ -603,6 +714,17 @@ class Scenario {
                 ,S("Amazing words of comfort.")
                 ,S("Well...\nEverything is ready now.\nSee you in the next government.")
                 ,bugInfo("mrf")
+              ]
+            
+            ,"ending-coup" => [
+                 S("Well, well, well.")
+                ,S("If it isn't the traitor King, trapped in its steel throne.")
+                ,S("You fascinate me, really.")
+                ,S("But actions have consequences.")
+                ,S("Our friend had a brilliant mind, he could have been useful to us.")
+                ,S("But you made the mayor eliminate him.")
+                ,S("I suppose I am lucky you didn't get to me.")
+                ,Ending("shutdown-rebellion")
               ]
           ]), false, true)
         ,new Char("ml1", "Mod Choke",
@@ -934,6 +1056,6 @@ class Scenario {
         ,new Char("ms", "Militant", "", 0, ["idle" => 0], new Dialogue("greet", [
             "greet" => []
           ]))
-      ], []);
+      ], ["aim.bug-rmm"]);
   }
 }

@@ -38,7 +38,7 @@ class PhoneRen extends CRTRen {
   
   public function call():Void {
     var c = Main.story.charMap[charList[selectedNum]];
-    var canCall = (c.vnumAssoc && c.alive);
+    var canCall = (c.vnumSeen && c.alive);
     if (canCall) {
       SFX.s("RingtoneShort");
       Main.ui.renView = City;
@@ -58,7 +58,7 @@ class PhoneRen extends CRTRen {
   public function render(to:Bitmap):Void {
     prerender();
     var c = Main.story.charMap[charList[selectedNum]];
-    var canCall = (c.vnumAssoc && c.alive);
+    var canCall = (c.vnumSeen && c.alive);
     var callCol = (canCall ? 0x9900FF00 : 0x99FFAA00);
     var frameCol = (c.seen ? c.alive : true) ? 0x9900FF00 : 0x99FF0000;
     var vec = to.getVectorRect(x, y, w, h);
@@ -78,13 +78,13 @@ class PhoneRen extends CRTRen {
     line(vec, callCol, 40, -60, -40, -60, 0, 0, 0);
     line(vec, callCol, 40, -80, -40, -80, 0, 0, 0);
     to.setVectorRect(x, y, w, h, vec);
-    var log = c.prefix;
+    var log = c.prefix + "V-Number: " + (c.vnumSeen ? c.vnum : "?");
     UI.f_fonts[0].render(
          to, x + 50, y + 20
         ,log.substr(0, Timing.quadInOut.getI(selectedText.valueF, log.length + 1))
         ,UI.f_fonts
       );
-    if (!c.vnumAssoc) {
+    if (!c.vnumSeen) {
       UI.f_fonts[0].render(to, x + wh - 64, 150, "V-Number missing!");
     } else if (!c.alive) {
       UI.f_fonts[0].render(to, x + wh - 64, 150, "Not alive!");

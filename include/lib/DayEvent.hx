@@ -16,4 +16,5 @@ enum DayEvent {
   Music(id:String);
   Sound(id:String);
   Lock(l:Bool);
+  Announce(m:String);
 }
