@@ -78,7 +78,7 @@ class PhoneRen extends CRTRen {
     line(vec, callCol, 40, -60, -40, -60, 0, 0, 0);
     line(vec, callCol, 40, -80, -40, -80, 0, 0, 0);
     to.setVectorRect(x, y, w, h, vec);
-    var log = c.prefix + "V-Number: " + (c.vnumSeen ? c.vnum : "?");
+    var log = c.prefix + "\nV-Number: " + (c.vnumSeen ? c.vnum : "?");
     UI.f_fonts[0].render(
          to, x + 50, y + 20
         ,log.substr(0, Timing.quadInOut.getI(selectedText.valueF, log.length + 1))
@@ -91,7 +91,7 @@ class PhoneRen extends CRTRen {
     } else {
       UI.f_fonts[0].render(to, x + wh - 24, 180, "C A L L");
     }
-    to.blitAlpha(UI.b_portraits[c.portrait], x + 180, y + 20);
+    if (c.portrait > -1) to.blitAlpha(UI.b_portraits[c.portrait], x + 180, y + 20);
     selectedText.tick();
   }
 }

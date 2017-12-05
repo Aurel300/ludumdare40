@@ -439,7 +439,9 @@ class Story {
       Main.ui.dialogueMode = true;
       Main.ui.recording = true;
       Main.ui.portrait = charMap[c].portrait;
-      Main.ui.portraitShow = true;
+      if (st.substr(0, 4) != "cell" && st.substr(0, 3) != "bug") {
+        Main.ui.portraitShow = true;
+      }
       if (!wasRecording) {
         Main.ui.writeLabel(c + "." + st);
       }

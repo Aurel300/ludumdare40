@@ -4,6 +4,8 @@ import sk.thenet.anim.*;
 import sk.thenet.audio.*;
 
 class Music {
+  public static var volume:Float = 1.0;
+  
   public static var tracks:Array<String> = [
        "Action1"
       ,"Action2"
@@ -85,14 +87,14 @@ class Music {
         volumes.splice(i, 1);
         channels.splice(i, 1);
       } else {
-        channels[i].setVolume(volumes[i].valueF);
+        channels[i].setVolume(volumes[i].valueF * volume);
       }
       i--;
     }
     if (playing.length > 0) {
       volumes[0].setTo(true);
       volumes[0].tick();
-      channels[0].setVolume(volumes[0].valueF);
+      channels[0].setVolume(volumes[0].valueF * volume);
     }
   }
 }

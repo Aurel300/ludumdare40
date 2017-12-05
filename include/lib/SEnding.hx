@@ -1,6 +1,7 @@
 package lib;
 
 import sk.thenet.app.*;
+import sk.thenet.app.Keyboard.Key;
 
 class SEnding extends JamState {
   public static var ending:String;
@@ -21,7 +22,7 @@ class SEnding extends JamState {
   
   override public function tick() {
     Music.tick();
-    ab.fill(Pal.colours[22]);
+    ab.fill(Pal.colours[0]);
     UI.f_fonts[0].render(ab, 5, 5, "GAME OVER\n\n" + (switch (ending) {
         case "shutdown-start":
         "Maybe that was not the time for jokes ...";
@@ -38,6 +39,13 @@ class SEnding extends JamState {
         case "rampant-student":
         "On to eons of learning ...";
         case _: "?";
-      }) + "\n\n\nClick to restart");
+      }) + "\n(there are 6 other endings)\n\n\nThank you for playing Ignorance is Bliss.\nA game made for LDJAM 40 in 72 hours\nBy Aurel B%l& and eidovolta.\n\n<thenet.sk>\n\n\n\nPress the U key to restart from the beginning.");
+  }
+  
+  override public function keyUp(key) {
+    if (key == Key.KeyU) {
+      Main.story = Scenario.start();
+      st("game");
+    }
   }
 }

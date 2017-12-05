@@ -10,7 +10,7 @@ class SGame extends JamState {
   
   override public function to() {
     ren = new CityRen(33, 0, 334, 230);
-    ui = new UI(ren, new PhoneRen(33, 0, 334, 230));
+    ui = new UI(ren, new PhoneRen(33, 0, 334, 230), new SettingsRen(33, 0, 334, 230));
   }
   
   override public function tick() {

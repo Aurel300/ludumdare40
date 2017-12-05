@@ -104,13 +104,14 @@ class Main extends Application {
           .concat((cast Fig.binds():Array<Asset>)))
         ,Keyboard
         ,Mouse
-        ,Console
-        ,ConsoleRemote("localhost", 8001)
+        //,Console
+        //,ConsoleRemote("localhost", 8001)
       ]);
     am = assetManager;
     story = Scenario.start();
     Music.init();
-    preloader = new DummyPreloader(this, "game");
+    preloader = new DummyPreloader(this, "intro");
+    addState(new SIntro(this));
     addState(new SGame(this));
     addState(new SEnding(this));
     #if flash

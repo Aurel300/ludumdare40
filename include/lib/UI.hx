@@ -85,7 +85,7 @@ class UI {
         false;
       }), new AssetBind(["portraits"], (am, _) -> {
         var f = am.getBitmap("portraits").fluent;
-        b_portraits = Vector.fromArrayCopy([ for (i in 0...3) f >> new Cut(0, i * 87, 111, 87) ]);
+        b_portraits = Vector.fromArrayCopy([ for (x in 0...2) for (y in 0...3) f >> new Cut(x * 111, y * 87, 111, 87) ]);
         false;
       })];
   }
@@ -125,7 +125,7 @@ class UI {
   public var tapeDigitsT:Array<Float>;
   public var ren:CityRen;
   public var pho:PhoneRen;
-  public var phone:PhoneRen;
+  public var sts:SettingsRen;
   public var recording:Bool = false;
   public var wasRecording:Bool = false;
   public var portrait:Int = 0;
@@ -145,7 +145,7 @@ class UI {
   public var writePh:Int = 0;
   public var writeSound:Int = 0;
   
-  public function new(ren:CityRen, pho:PhoneRen) {
+  public function new(ren:CityRen, pho:PhoneRen, sts:SettingsRen) {
     Main.ui = this;
     overlay = new Bitween(120);
     overlayCrt = new Bitween(240);
@@ -166,6 +166,7 @@ class UI {
     writeBuffer = Platform.createBitmap(129, 70 + 16, 0);
     this.ren = ren;
     this.pho = pho;
+    this.sts = sts;
     tapeChannel = SFX.s("TapeRewind", Forever);
     tapeChannel.setVolume(0);
     tapeChannel.setPan(.3);
@@ -263,7 +264,9 @@ class UI {
     pho.crt = ren.crt = (1 - Timing.quadOut.getF(overlayCrt.valueF)) * 1.2;
     switch (renView) {
       case Phonebook: pho.render(to);
-      case _: ren.render(to, dialogueMode);
+      case City: ren.render(to, dialogueMode);
+      case Brain: ren.render(to, true);
+      case Settings: sts.render(to);
     }
     if (!overlay.isOn) {
       to.fillRect(0, 300 + ovY, 400, 300 - ovY, Pal.colours[0]);
@@ -308,14 +311,17 @@ class UI {
       crtDisplay.setTo(true);
     } else {
       crtDisplay.setTo(false);
+      if (renView != City) {
+        f_fonts[0].render(to, 12, crtY + 65, "GAME PAUSED");
+      }
       to.fillRect(10, crtY + 80, 103, 10, Pal.colours[8]);
       to.fillRect(12, crtY + 82, ((1 - Main.story.dayTime / 5000) * 99).floor(), 6, Pal.colours[18]);
     }
     if (crtDisplay.isOn) {
-      to.blitAlpha(b_portraits[portrait], 6, crtY + 6);
+      if (portrait != -1) to.blitAlpha(b_portraits[portrait], 6, crtY + 6);
     } else if (!crtDisplay.isOff) {
       var rev = 43 - Timing.circOut.getI(crtDisplay.valueF, 43);
-      to.blitAlphaRect(b_portraits[portrait], 6 + rev, crtY + 6 + rev, rev, rev, 111 - rev * 2, 87 - rev * 2);
+      if (portrait != -1) to.blitAlphaRect(b_portraits[portrait], 6 + rev, crtY + 6 + rev, rev, rev, 111 - rev * 2, 87 - rev * 2);
     }
     var tbgY = Main.H - Timing.quintOut.getI(crt.valueF, 119);
     to.blitAlpha(b_tapeBG, 260, tbgY);
@@ -392,7 +398,7 @@ class UI {
     }
     
     tapePh += tapeSpeed;
-    tapeChannel.setVolume((tapeSpeed.absF() / 3).clampF(0, 1) * .6);
+    tapeChannel.setVolume((tapeSpeed.absF() / 3).clampF(0, 1) * .6 * SFX.volume);
     tapeSpeed *= .94;
     if (tapePh < 0) tapePh += TAPE_FRAMES;
     if (tapePh >= TAPE_FRAMES) tapePh -= TAPE_FRAMES;
@@ -490,7 +496,7 @@ class UI {
     held = at(mx, my);
     switch (held) {
       case TapeControl(_) | ZoomIn | ZoomOut | PitchDown | PitchUp:
-      Main.am.getSound("CasettePlay").play();
+      SFX.s("CasettePlay");
       //setTapeNum((tapeNum + FM.prng.nextMod(5)) % 10000);
       case _:
       return false;
@@ -501,7 +507,13 @@ class UI {
   public function mouseUp(mx:Int, my:Int):Bool {
     switch (held) {
       case None | TurnLeft | TurnRight | Move(_, _, _, _):
-      case _: Main.am.getSound("CasetteStop").play();
+      case _: SFX.s("CasetteStop");
+    }
+    if (renView == Brain) {
+      switch (held) {
+        case TurnLeft | TurnLeft | Move(_, _, _, _):
+        case _: renView = City;
+      }
     }
     switch (held) {
       case TapeControl(i):

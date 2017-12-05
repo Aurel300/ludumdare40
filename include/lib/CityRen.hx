@@ -261,7 +261,7 @@ class CityRen extends CRTRen {
     }
     selectedText.tick();
     if (activeTimer > 0) {
-      activeChannel.setVolume(activeTimer / 1080);
+      activeChannel.setVolume((activeTimer / 1080) * SFX.volume);
       activeTimer--;
       var left = pointerCalc(-50, 0).distance(active.point);
       var right = pointerCalc(50, 0).distance(active.point);

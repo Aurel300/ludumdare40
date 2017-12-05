@@ -5,6 +5,8 @@ import sk.thenet.audio.IChannel;
 import sk.thenet.audio.Sound.LoopMode;
 
 class SFX {
+  public static var volume:Float = 1.0;
+  
   public static function s(id:String, ?mode:LoopMode):IChannel {
     var vol = 1.0;
     var pan = 0.0;
@@ -16,6 +18,6 @@ class SFX {
       vol = .2 + FM.prng.nextFloat() * .2;
       case _:
     }
-    return Main.am.getSound(id).play(mode, vol);
+    return Main.am.getSound(id).play(mode, vol * volume);
   }
 }

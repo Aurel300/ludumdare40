@@ -442,8 +442,8 @@ class Scenario {
                   +"buttons above!")
                 ,S("They will represent the $Dphone-\n"
                   +"$Dbook$B, the $Dcity$B, the $Dtapes$B,\n"
-                  +"the $Dmission status$B,\n"
-                  +"and $Dsettings$B.")
+                  +"the $Dpause$B,\n"
+                  +"and the $Dsettings$B.")
                 ,S("Well... Good luck!")
               ]
             ,"no-understand" => [
@@ -633,7 +633,7 @@ class Scenario {
            "Leader of the White Craft\n\n"
           +"$BA mysterious figure leading an\n"
           +"$Beven more mysterious political\n"
-          +"$Borganisation.", 0, ["idle" => 0], new Dialogue("greet", [
+          +"$Borganisation.", 3, ["idle" => 0], new Dialogue("greet", [
              "greet" => [S("?")]
             ,"call-mcms2" => callFull(null, null, 3, 0, [
                  S("Is this Clip Mech?")
@@ -733,7 +733,7 @@ class Scenario {
           +"$BSons of Choral. Seems to be somewhat\n"
           +"$Bover-educated for a mercenary boss.\n\n"
           +"$BMod's Sons are known for having funny\n"
-          +"$Bnicknames behind their backs.", 0, ["idle" => 0], new Dialogue("greet", [
+          +"$Bnicknames behind their backs.", 2, ["idle" => 0], new Dialogue("greet", [
             "greet" => [S("?")]
           ]), false, true)
         ,new Char("ml2", "Clip Mech",
@@ -771,7 +771,7 @@ class Scenario {
           +"$BRookie in the Metro financial scene,\n"
           +"$Bdespite having little to no competition.\n\n"
           +"$BEither has some money anyway or knows\n"
-          +"$Bhow to make second-hand suits look brand new.", 0, ["idle" => 0], new Dialogue("greet", [
+          +"$Bhow to make second-hand suits look brand new.", -1, ["idle" => 0], new Dialogue("greet", [
              "greet" => []
             ,"bug-mm0" => [
                  bugStart(["d1", "d2"])
@@ -808,7 +808,7 @@ class Scenario {
           +"$BThe unsung hero, the overlooked master,\n"
           +"$Bthe forgotten guru, the silent snake,\n"
           +"$Bninja, avenger, space cowboy: all the\n"
-          +"$Bnicknames Nut Router wishes he had instead.", 0, ["idle" => 0], new Dialogue("greet", [
+          +"$Bnicknames Nut Router wishes he had instead.", -1, ["idle" => 0], new Dialogue("greet", [
             "greet" => []
           ]))
         ,new Char("d3", "Bug Cobalt",
@@ -816,7 +816,7 @@ class Scenario {
           +"$BHits the gym on a regular basis, rarely\n"
           +"$Breads mechanics' guides, but is somehow\n"
           +"$Bthe most effective worker at his job.\n\n"
-          +"$BEnjoys coffee.", 0, ["idle" => 0], new Dialogue("greet", [
+          +"$BEnjoys coffee.", -1, ["idle" => 0], new Dialogue("greet", [
              "greet" => []
             ,"call-mms1" => [
                  callStart("d3", "d4")
@@ -855,14 +855,14 @@ class Scenario {
            "Bug's Friend\n\n"
           +"$BHas no know political affiliation\n"
           +"$Bbesides voting for his (non-candidate)\n"
-          +"$Bfriend in every election.", 0, ["idle" => 0], new Dialogue("greet", [
+          +"$Bfriend in every election.", -1, ["idle" => 0], new Dialogue("greet", [
             "greet" => []
           ]))
         ,new Char("d5", "Mortimer Buffers",
            "Self-proclaimed sceptic\n\n"
           +"$BExistential terror keeps him going.\n"
           +"$BHas a job, but likes to pretend he is\n"
-          +"$Bnot a part of the commercial industry.", 0, ["idle" => 0], new Dialogue("greet", [
+          +"$Bnot a part of the commercial industry.", -1, ["idle" => 0], new Dialogue("greet", [
              "greet" => []
             ,"call-mms2" => [
                  callStart("d5", "d6")
@@ -961,14 +961,14 @@ class Scenario {
           +"$BKeeps a private eye on her friends\n"
           +"$Bjust in case they were criminals\n"
           +"$Bsubconsciously. Would probably try to\n"
-          +"$Bforgive them anyway.", 0, ["idle" => 0], new Dialogue("greet", [
+          +"$Bforgive them anyway.", 4, ["idle" => 0], new Dialogue("greet", [
             "greet" => []
           ]), true)
         ,new Char("d8", "Ada Core",
            "Power Plant Engineer\n\n"
           +"$BIs properly educated but often proposes\n"
           +"$Bexplanations requiring some aluminium head\n"
-          +"$Bcovers to understand properly.", 0, ["idle" => 0], new Dialogue("greet", [
+          +"$Bcovers to understand properly.", 5, ["idle" => 0], new Dialogue("greet", [
              "greet" => []
             ,"call-mms3" => [
                  callStart("d8", "d1")
