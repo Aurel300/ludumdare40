@@ -1,4 +1,5 @@
 -D PLUSTD_TARGET=js.canvas
+-cp /DevProjects/Libs/plustd/assets/thenet-preloader/lib
 -cp /DevProjects/Fonts
 -cp ../include
 -lib plustd

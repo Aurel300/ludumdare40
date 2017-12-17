@@ -18,6 +18,11 @@ class SFX {
       vol = .2 + FM.prng.nextFloat() * .2;
       case _:
     }
+    //return Main.am.getSound(id).play(mode, vol * volume);
+#if BUILD_FLASH
+    return SIntro.loadedOggs[id].play(mode, vol * volume);
+#else
     return Main.am.getSound(id).play(mode, vol * volume);
+#end
   }
 }

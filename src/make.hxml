@@ -1,7 +1,10 @@
+-D BUILD_FLASH
 -D PLUSTD_TARGET=flash
 -cp /DevProjects/Fonts
 -cp ../include
+-cp ../haxe_stb_ogg_sound/src
 -lib plustd
 -main Main
 -swf-header 800:600:60:000000
+-swf-version 11
 -swf game.swf

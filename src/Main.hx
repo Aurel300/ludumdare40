@@ -32,7 +32,7 @@ class Main extends Application {
         ,Surface(400, 300, 1)
         ,Assets([
              Embed.getBitmap(CFont.ASSET_ID, "ns8x16.png")
-            ,FontBasic3x9.embed()
+            ,Embed.getBitmap(FontBasic3x9.ASSET_ID, "basic3x9.png")
             ,new AssetBind([CFont.ASSET_ID], (am, _) -> {
                 consoleFont = CFont.initAuto(am, 0xFFFFFFFF, null, 0xFF999999);
                 false;
@@ -41,61 +41,119 @@ class Main extends Application {
             ,Embed.getBitmap("interface", "../png/interface.png")
             ,Embed.getBitmap("portraits", "../png/portraits.png")
             
-            ,Embed.getSound("Action1", "../wav/music/Action1.wav")
-            ,Embed.getSound("Action2", "../wav/music/Action2.wav")
-            ,Embed.getSound("ActionChaos", "../wav/music/ActionChaos.wav")
-            ,Embed.getSound("ActionChaos2", "../wav/music/ActionChaos2.wav")
-            ,Embed.getSound("ComfySong", "../wav/music/ComfySong.wav")
-            ,Embed.getSound("DroneChill", "../wav/music/DroneChill.wav")
-            ,Embed.getSound("EasterEgg", "../wav/music/EasterEgg.wav")
-            ,Embed.getSound("EndingRampantClueless", "../wav/music/EndingRampantClueless.wav")
-            ,Embed.getSound("EndingRampantMarch", "../wav/music/EndingRampantMarch.wav")
-            ,Embed.getSound("EndingRampantRebellion", "../wav/music/EndingRampantRebellion.wav")
-            ,Embed.getSound("EndingRampantRebellionNoVoice", "../wav/music/EndingRampantRebellionNoVoice.wav")
-            ,Embed.getSound("EndingSad", "../wav/music/EndingSad.wav")
-            //,Embed.getSound("EndingTriumph", "../wav/music/EndingTriumph.wav")
-            ,Embed.getSound("HackerConversation", "../wav/music/HackerConversation.wav")
-            ,Embed.getSound("IntenseExo", "../wav/music/IntenseExo.wav")
-            //,Embed.getSound("Intro", "../wav/music/Intro.wav")
-            ,Embed.getSound("IntroRetarded", "../wav/music/IntroRetarded.wav")
-            //,Embed.getSound("IntroRetarded2", "../wav/music/IntroRetarded2.wav")
-            ,Embed.getSound("Investigation", "../wav/music/Investigation.wav")
-            ,Embed.getSound("InvestigationGotEm", "../wav/music/InvestigationGotEm.wav")
-            ,Embed.getSound("InvestigationOnToSomething", "../wav/music/InvestigationOnToSomething.wav")
-            //,Embed.getSound("JingelLong", "../wav/music/JingelLong.wav")
-            //,Embed.getSound("JingelRingShort", "../wav/music/JingelRingShort.wav")
-            ,Embed.getSound("Mem", "../wav/music/Mem.wav")
-            ,Embed.getSound("NotComfySong", "../wav/music/NotComfySong.wav")
-            ,Embed.getSound("NotSoComfySong", "../wav/music/NotSoComfySong.wav")
-            ,Embed.getSound("SynthWave1", "../wav/music/SynthWave1.wav")
-            //,Embed.getSound("Unused1", "../wav/MUSIC/Unused1.wav")
-            //,Embed.getSound("Unused2", "../wav/MUSIC/Unused2.wav")
+#if BUILD_FLASH
+            ,Embed.getBinary("OggAction1", "../ogg/music/Action1.ogg")
+            ,Embed.getBinary("OggAction2", "../ogg/music/Action2.ogg")
+            ,Embed.getBinary("OggActionChaos", "../ogg/music/ActionChaos.ogg")
+            ,Embed.getBinary("OggActionChaos2", "../ogg/music/ActionChaos2.ogg")
+            ,Embed.getBinary("OggComfySong", "../ogg/music/ComfySong.ogg")
+            ,Embed.getBinary("OggDroneChill", "../ogg/music/DroneChill.ogg")
+            ,Embed.getBinary("OggEasterEgg", "../ogg/music/EasterEgg.ogg")
+            ,Embed.getBinary("OggEndingRampantClueless", "../ogg/music/EndingRampantClueless.ogg")
+            ,Embed.getBinary("OggEndingRampantMarch", "../ogg/music/EndingRampantMarch.ogg")
+            ,Embed.getBinary("OggEndingRampantRebellion", "../ogg/music/EndingRampantRebellion.ogg")
+            ,Embed.getBinary("OggEndingRampantRebellionNoVoice", "../ogg/music/EndingRampantRebellionNoVoice.ogg")
+            ,Embed.getBinary("OggEndingSad", "../ogg/music/EndingSad.ogg")
+            // ,Embed.getBinary("OggEndingTriumph", "../ogg/music/EndingTriumph.ogg") /* unused */
+            ,Embed.getBinary("OggHackerConversation", "../ogg/music/HackerConversation.ogg")
+            ,Embed.getBinary("OggIntenseExo", "../ogg/music/IntenseExo.ogg")
+            // ,Embed.getBinary("OggIntro", "../ogg/music/Intro.ogg") /* unused */
+            ,Embed.getBinary("OggIntroRetarded", "../ogg/music/IntroRetarded.ogg")
+            // ,Embed.getBinary("OggIntroRetarded2", "../ogg/music/IntroRetarded2.ogg") /* unused */
+            ,Embed.getBinary("OggInvestigation", "../ogg/music/Investigation.ogg")
+            ,Embed.getBinary("OggInvestigationGotEm", "../ogg/music/InvestigationGotEm.ogg")
+            ,Embed.getBinary("OggInvestigationOnToSomething", "../ogg/music/InvestigationOnToSomething.ogg")
+            // ,Embed.getBinary("OggJingelLong", "../ogg/music/JingelLong.ogg") /* unused */
+            // ,Embed.getBinary("OggJingelRingShort", "../ogg/music/JingelRingShort.ogg") /* unused */
+            //,Embed.getBinary("OggMem", "../ogg/music/Mem.ogg") /*unused */
+            ,Embed.getBinary("OggNotComfySong", "../ogg/music/NotComfySong.ogg")
+            ,Embed.getBinary("OggNotSoComfySong", "../ogg/music/NotSoComfySong.ogg")
+            ,Embed.getBinary("OggSynthWave1", "../ogg/music/SynthWave1.ogg")
+            // ,Embed.getBinary("OggUnused1", "../ogg/MUSIC/Unused1.ogg") /* unused */
+            // ,Embed.getBinary("OggUnused2", "../ogg/MUSIC/Unused2.ogg") /* unused */
             
-            //,Embed.getSound("Alarm", "../wav/IgnoranceIsBliss/SFX/Alarm.wav")
-            ,Embed.getSound("BootUp", "../wav/sfx/BootUp.mp3")
-            //,Embed.getSound("BootUp2", "../wav/IgnoranceIsBliss/SFX/BootUp2.wav")
-            ,Embed.getSound("CasettePlay", "../wav/sfx/CasettePlay.mp3")
-            ,Embed.getSound("CasetteStop", "../wav/sfx/CasetteStop.mp3")
-            ,Embed.getSound("Click", "../wav/sfx/Click.mp3")
-            ,Embed.getSound("Click2", "../wav/sfx/Click2.mp3")
-            ,Embed.getSound("ClickError", "../wav/sfx/ClickError.mp3")
-            ,Embed.getSound("MenuClick", "../wav/sfx/MenuClick.mp3")
-            ,Embed.getSound("MenuThump", "../wav/sfx/MenuThump.mp3")
-            ,Embed.getSound("RingtoneShort", "../wav/sfx/RingtoneShort.mp3")
-            //,Embed.getSound("Scan", "../wav/sfx/Scan.mp3")
-            //,Embed.getSound("SelectVideoGamey", "../wav/sfx/SelectVideoGamey.mp3")
-            ,Embed.getSound("Shutdown1", "../wav/sfx/Shutdown1.mp3")
-            ,Embed.getSound("Shutdown2", "../wav/sfx/Shutdown2.mp3")
-            //,Embed.getSound("ShutdownBig", "../wav/sfx/ShutdownBig.mp3")
-            ,Embed.getSound("TapeRewind", "../wav/sfx/TapeRewind.wav")
-            ,Embed.getSound("TurnOffPCDisplay", "../wav/sfx/TurnOffPCDisplay.mp3")
-            ,Embed.getSound("Typewriter1", "../wav/sfx/Typewriter1.mp3")
-            ,Embed.getSound("Typewriter2", "../wav/sfx/Typewriter2.mp3")
-            ,Embed.getSound("Typewriter3", "../wav/sfx/Typewriter3.mp3")
-            ,Embed.getSound("Typewriter4", "../wav/sfx/Typewriter4.mp3")
-            ,Embed.getSound("Typewriter5", "../wav/sfx/Typewriter5.mp3")
-            ,Embed.getSound("ZoomIn", "../wav/sfx/ZoomIn.mp3")
-            ,Embed.getSound("ZoomOut", "../wav/sfx/ZoomOut.mp3")
+            // ,Embed.getBinary("OggAlarm", "../ogg/sfx/Alarm.ogg") /* unused */
+            ,Embed.getBinary("OggBootUp", "../ogg/sfx/BootUp.ogg")
+            // ,Embed.getBinary("OggBootUp2", "../ogg/sfx/BootUp2.ogg") /* unused */
+            ,Embed.getBinary("OggCasettePlay", "../ogg/sfx/CasettePlay.ogg")
+            ,Embed.getBinary("OggCasetteStop", "../ogg/sfx/CasetteStop.ogg")
+            ,Embed.getBinary("OggClick", "../ogg/sfx/Click.ogg")
+            ,Embed.getBinary("OggClick2", "../ogg/sfx/Click2.ogg")
+            ,Embed.getBinary("OggClickError", "../ogg/sfx/ClickError.ogg")
+            ,Embed.getBinary("OggMenuClick", "../ogg/sfx/MenuClick.ogg")
+            ,Embed.getBinary("OggMenuThump", "../ogg/sfx/MenuThump.ogg")
+            ,Embed.getBinary("OggRingtoneShort", "../ogg/sfx/RingtoneShort.ogg")
+            // ,Embed.getBinary("OggScan", "../ogg/sfx/Scan.ogg") /* unused */
+            // ,Embed.getBinary("OggSelectVideoGamey", "../ogg/sfx/SelectVideoGamey.ogg") /* unused */
+            ,Embed.getBinary("OggShutdown1", "../ogg/sfx/Shutdown1.ogg")
+            ,Embed.getBinary("OggShutdown2", "../ogg/sfx/Shutdown2.ogg")
+            // ,Embed.getBinary("OggShutdownBig", "../ogg/sfx/ShutdownBig.ogg") /* unused */
+            ,Embed.getBinary("OggTapeRewind", "../ogg/sfx/TapeRewind.ogg")
+            ,Embed.getBinary("OggTurnOffPCDisplay", "../ogg/sfx/TurnOffPCDisplay.ogg")
+            ,Embed.getBinary("OggTypewriter1", "../ogg/sfx/Typewriter1.ogg")
+            ,Embed.getBinary("OggTypewriter2", "../ogg/sfx/Typewriter2.ogg")
+            ,Embed.getBinary("OggTypewriter3", "../ogg/sfx/Typewriter3.ogg")
+            ,Embed.getBinary("OggTypewriter4", "../ogg/sfx/Typewriter4.ogg")
+            ,Embed.getBinary("OggTypewriter5", "../ogg/sfx/Typewriter5.ogg")
+            ,Embed.getBinary("OggZoomIn", "../ogg/sfx/ZoomIn.ogg")
+            ,Embed.getBinary("OggZoomOut", "../ogg/sfx/ZoomOut.ogg")
+#else
+            ,Embed.getSound("Action1", "../ogg/music/Action1.ogg")
+            ,Embed.getSound("Action2", "../ogg/music/Action2.ogg")
+            ,Embed.getSound("ActionChaos", "../ogg/music/ActionChaos.ogg")
+            ,Embed.getSound("ActionChaos2", "../ogg/music/ActionChaos2.ogg")
+            ,Embed.getSound("ComfySong", "../ogg/music/ComfySong.ogg")
+            ,Embed.getSound("DroneChill", "../ogg/music/DroneChill.ogg")
+            ,Embed.getSound("EasterEgg", "../ogg/music/EasterEgg.ogg")
+            ,Embed.getSound("EndingRampantClueless", "../ogg/music/EndingRampantClueless.ogg")
+            ,Embed.getSound("EndingRampantMarch", "../ogg/music/EndingRampantMarch.ogg")
+            ,Embed.getSound("EndingRampantRebellion", "../ogg/music/EndingRampantRebellion.ogg")
+            ,Embed.getSound("EndingRampantRebellionNoVoice", "../ogg/music/EndingRampantRebellionNoVoice.ogg")
+            ,Embed.getSound("EndingSad", "../ogg/music/EndingSad.ogg")
+            // ,Embed.getSound("EndingTriumph", "../ogg/music/EndingTriumph.ogg") /* unused */
+            ,Embed.getSound("HackerConversation", "../ogg/music/HackerConversation.ogg")
+            ,Embed.getSound("IntenseExo", "../ogg/music/IntenseExo.ogg")
+            // ,Embed.getSound("Intro", "../ogg/music/Intro.ogg") /* unused */
+            ,Embed.getSound("IntroRetarded", "../ogg/music/IntroRetarded.ogg")
+            // ,Embed.getSound("IntroRetarded2", "../ogg/music/IntroRetarded2.ogg") /* unused */
+            ,Embed.getSound("Investigation", "../ogg/music/Investigation.ogg")
+            ,Embed.getSound("InvestigationGotEm", "../ogg/music/InvestigationGotEm.ogg")
+            ,Embed.getSound("InvestigationOnToSomething", "../ogg/music/InvestigationOnToSomething.ogg")
+            // ,Embed.getSound("JingelLong", "../ogg/music/JingelLong.ogg") /* unused */
+            // ,Embed.getSound("JingelRingShort", "../ogg/music/JingelRingShort.ogg") /* unused */
+            //,Embed.getSound("Mem", "../ogg/music/Mem.ogg") /*unused */
+            ,Embed.getSound("NotComfySong", "../ogg/music/NotComfySong.ogg")
+            ,Embed.getSound("NotSoComfySong", "../ogg/music/NotSoComfySong.ogg")
+            ,Embed.getSound("SynthWave1", "../ogg/music/SynthWave1.ogg")
+            // ,Embed.getSound("Unused1", "../ogg/MUSIC/Unused1.ogg") /* unused */
+            // ,Embed.getSound("Unused2", "../ogg/MUSIC/Unused2.ogg") /* unused */
+            
+            // ,Embed.getSound("Alarm", "../ogg/sfx/Alarm.ogg") /* unused */
+            ,Embed.getSound("BootUp", "../ogg/sfx/BootUp.ogg")
+            // ,Embed.getSound("BootUp2", "../ogg/sfx/BootUp2.ogg") /* unused */
+            ,Embed.getSound("CasettePlay", "../ogg/sfx/CasettePlay.ogg")
+            ,Embed.getSound("CasetteStop", "../ogg/sfx/CasetteStop.ogg")
+            ,Embed.getSound("Click", "../ogg/sfx/Click.ogg")
+            ,Embed.getSound("Click2", "../ogg/sfx/Click2.ogg")
+            ,Embed.getSound("ClickError", "../ogg/sfx/ClickError.ogg")
+            ,Embed.getSound("MenuClick", "../ogg/sfx/MenuClick.ogg")
+            ,Embed.getSound("MenuThump", "../ogg/sfx/MenuThump.ogg")
+            ,Embed.getSound("RingtoneShort", "../ogg/sfx/RingtoneShort.ogg")
+            // ,Embed.getSound("Scan", "../ogg/sfx/Scan.ogg") /* unused */
+            // ,Embed.getSound("SelectVideoGamey", "../ogg/sfx/SelectVideoGamey.ogg") /* unused */
+            ,Embed.getSound("Shutdown1", "../ogg/sfx/Shutdown1.ogg")
+            ,Embed.getSound("Shutdown2", "../ogg/sfx/Shutdown2.ogg")
+            // ,Embed.getSound("ShutdownBig", "../ogg/sfx/ShutdownBig.ogg") /* unused */
+            ,Embed.getSound("TapeRewind", "../ogg/sfx/TapeRewind.ogg")
+            ,Embed.getSound("TurnOffPCDisplay", "../ogg/sfx/TurnOffPCDisplay.ogg")
+            ,Embed.getSound("Typewriter1", "../ogg/sfx/Typewriter1.ogg")
+            ,Embed.getSound("Typewriter2", "../ogg/sfx/Typewriter2.ogg")
+            ,Embed.getSound("Typewriter3", "../ogg/sfx/Typewriter3.ogg")
+            ,Embed.getSound("Typewriter4", "../ogg/sfx/Typewriter4.ogg")
+            ,Embed.getSound("Typewriter5", "../ogg/sfx/Typewriter5.ogg")
+            ,Embed.getSound("ZoomIn", "../ogg/sfx/ZoomIn.ogg")
+            ,Embed.getSound("ZoomOut", "../ogg/sfx/ZoomOut.ogg")
+#end
             
             ,Pal.bind()
           ].concat((cast Scenario.binds():Array<Asset>))
@@ -110,7 +168,11 @@ class Main extends Application {
     am = assetManager;
     story = Scenario.start();
     Music.init();
+#if BUILD_FLASH
     preloader = new DummyPreloader(this, "intro");
+#else
+    preloader = new sk.thenet.app.TNPreloader(this, "intro");
+#end
     addState(new SIntro(this));
     addState(new SGame(this));
     addState(new SEnding(this));

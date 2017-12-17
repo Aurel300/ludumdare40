@@ -718,12 +718,12 @@ class Scenario {
             
             ,"ending-coup" => [
                  S("Well, well, well.")
-                ,S("If it isn't the traitor King, trapped in its steel throne.")
+                ,S("If it isn't the traitor King,\ntrapped in its steel throne.")
                 ,S("You fascinate me, really.")
                 ,S("But actions have consequences.")
-                ,S("Our friend had a brilliant mind, he could have been useful to us.")
-                ,S("But you made the mayor eliminate him.")
-                ,S("I suppose I am lucky you didn't get to me.")
+                ,S("Our friend had a brilliant mind.\nhe could have been useful\nto us.")
+                ,S("But you made the mayor\neliminate him.")
+                ,S("I suppose I am lucky you\ndidn't get to me.")
                 ,Ending("shutdown-rebellion")
               ]
           ]), false, true)

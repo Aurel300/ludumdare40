@@ -75,7 +75,7 @@ class UI {
           ]);
         false;
       }), new AssetBind(["pal", FontNS.ASSET_ID, FontBasic3x9.ASSET_ID], (am, _) -> {
-        if (loadB++ < 2) return false;
+        //if (loadB++ < 2) return false;
         f_fonts = [
              FontNS.initAuto(am, Pal.colours[1], Pal.colours[13], Pal.colours[21], 0, 1)
             ,FontBasic3x9.initAuto(am, Pal.colours[1], Pal.colours[13], Pal.colours[21], 0, 1)

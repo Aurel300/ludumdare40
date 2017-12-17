@@ -65,7 +65,12 @@ class Music {
     playing.unshift(id);
     volumes.unshift(new Bitween(30));
     volumes[0].setTo(true, !fadeIn);
+    //channels.unshift(Main.am.getSound(id).play(Forever, fadeIn ? 0.01 : 1));
+#if BUILD_FLASH
+    channels.unshift(SIntro.loadedOggs[id].play(Forever, fadeIn ? 0.01 : 1));
+#else
     channels.unshift(Main.am.getSound(id).play(Forever, fadeIn ? 0.01 : 1));
+#end
     if (!fadeOutOthers) {
       while (playing.length > 1) {
         channels[1].stop();
