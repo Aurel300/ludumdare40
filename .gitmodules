@@ -1,3 +1,6 @@
 [submodule "haxe_stb_ogg_sound"]
 	path = haxe_stb_ogg_sound
 	url = git@github.com:shohei909/haxe_stb_ogg_sound.git
+[submodule "plustd"]
+	path = plustd
+	url = https://github.com/Aurel300/plustd

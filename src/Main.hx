@@ -58,7 +58,7 @@ class Main extends Application {
             ,Embed.getBinary("OggHackerConversation", "../ogg/music/HackerConversation.ogg")
             ,Embed.getBinary("OggIntenseExo", "../ogg/music/IntenseExo.ogg")
             // ,Embed.getBinary("OggIntro", "../ogg/music/Intro.ogg") /* unused */
-            ,Embed.getBinary("OggIntroRetarded", "../ogg/music/IntroRetarded.ogg")
+            ,Embed.getBinary("OggIntroRetarded", "../ogg/music/IntroRetarded.ogg") // not my nomenclature
             // ,Embed.getBinary("OggIntroRetarded2", "../ogg/music/IntroRetarded2.ogg") /* unused */
             ,Embed.getBinary("OggInvestigation", "../ogg/music/Investigation.ogg")
             ,Embed.getBinary("OggInvestigationGotEm", "../ogg/music/InvestigationGotEm.ogg")
@@ -162,6 +162,7 @@ class Main extends Application {
           .concat((cast Fig.binds():Array<Asset>)))
         ,Keyboard
         ,Mouse
+        // To enable enter for console (also see Debug.hx):
         //,Console
         //,ConsoleRemote("localhost", 8001)
       ]);
@@ -176,6 +177,7 @@ class Main extends Application {
     addState(new SIntro(this));
     addState(new SGame(this));
     addState(new SEnding(this));
+    addState(new SPMTape(this));
     #if flash
     haxe.Log.setColor(0xFFFFFF);
     #end
